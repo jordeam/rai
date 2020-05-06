@@ -1,0 +1,12 @@
+core.*
+*.o
+*.map
+*.elf
+*~
+*.bin
+*.a
+*.log
+*.lst
+*.s
+*.zip
+*.hex
