@@ -10,135 +10,136 @@ v0.1, 2020-05-01
 * NO hardware flow control / Sem controle de fluxo por hardware
 * No parity bit / Sem bit de paridade
 * 8 bits of data / 8 bits de dados
+* 2 stop bits for transmission and one for reception.
 * Baudrate: `to be determined` / Taxa de transferência: a ser determinado
 
-== Emolduração do pacote de dados (Data packet framing)
+== Syntaxe dos Comandos
 
-Cada pacote de dados precisa ter uma sinalização de início e término, devido a se ter adotado controle de fluxo por hardware. Esse início e fim é sinalizado por uma sequência de bytes, sendo adotada a sequência de 2 bytes: 0x80 0x00 (`80 00`). Isso tem o efeito colateral de que cada ocorrência do byte `80` em um pacote de dados precisa ser protegida, isto é, precisa ser transformada para que uma possível ocorrência da sequência `80 00` dentro de um pacote não seja interpretada como término ou fim de pacote. Portanto, cada ocorrência do byte `80` deve ser substituída por `80 XX` onde `XX` é o número de bytes consecutivos iguais a `80`, onde `XX` pode variar de 1 a 255. Caso existam mais bytes `80` em sequência, outra sequência de bytes `80 XX` deve ser utilizada até que o número total de bytes `80` em sequência seja atingido.
-Exemplos:
+O formato de envio de dados entre os dispositivos é ASCII, os comandos são separados dos parâmetros por espaço (0x20) e cada conjunto (comando e parâmetro) é separado por _linefeed_ (0x0a) ou _carriage return_ (0x0d).
 
-* Data Packet: `00 01 0f 80 fd`
+Os comandos possuema seguinte syntaxe:
 
-* Transmited as: `*80 00* 01 0f 80 01 fd *80 00*`
+`x:cmd\[!] \[parâmetro] \n[\r]`
 
-Onde: os dois primeiros bytes sinalizam o início do pacote, `80 01` corresponde a uma ocorrência do byte `80` e a sequência final `80 00` corresponde ao final do pacote. Caso pacotes adjacentes sejam transmitidos, não há a necessidade de se duplicar as sequências `80 00`, apenas uma é necessária. Exemplo:
+Onde: `x` pode ser:
 
-* Data packet 1: `2f 5c 98 80 80 04`
-* Data packet 2: `3f 49 5b 81 00`
+* `r` para o respirador,
+* `1` a `4` para as bombas de infusão de 1 a 4,
+* `m` para o monitor cardíaco e
+* `o` para o monitor de taxa de oxigenação do sangue
 
-* Transmitted as: `*80 00* 2f 5c 98 *80 02* 04 *80 00* 3f 49 5b 81 00 *80 00*`
+A presença do `!` vai indicar se é uma escrita ou uma leitura do parâmetro (ausência do `!`).
 
-== Comandos e Pacotes de Dados
+O `parâmetro` vai depender se o comando possui ou não um parâmetro a ser enviado.
 
-Cada comando corresponde a um pacote de dados com pelo menos 2 bytes de tamanho. O equipamento interno ao qual se refere esse comando é selecionado por ele mesmo, no primeiro byte, pelos 4 bits menos significativos. O segundo byte seleciona um parâmetro (ou registrador) desse equipamento ou uma ação a ser executada.
+=== Respostas do ARM
 
-image::packet.svg[Pacote de dados]
+A resposta do ARM:
+. para comandos que não requisitam parâmetros, é o próprio comando e o valor do código de erro ou sucesso (_status-code_), e
+. para comandos que requisitam parâmetros, é o comando e o parâmtetro, caso não tenha ocorrido nenhum erro, ou o comando e o código do erro (_status-code_), no caso da ocorrência de erro.
 
-NOTE: Para os dados, o LSB é enviado primeiramente.
-
-.Número para o equipamento interno `N`
-[cols="^,<4", options="header"]
-|===
-| `N` | Equipamento
-| `0` | Respirador
-| `1` | Bomba de Infusão #1
-| `2` | Bomba de Infusão #2
-| `3` | Bomba de Infusão #3
-| `4` | Bomba de Infusão #4
-| `5` | Monitor Cardíaco
-| `6` | Monitor da Taxa de Oxigenação
-|===
-
-
-.Comandos originados do Mestre -- Raspberry: `CMD` é o número do comando.
-[cols="2", options="header"]
-|===
-| Command Name | CMD 
-| Execution command | `0` 
-| Set parameter  | `1`
-| Get parameter  | `2`
-|===
-
-A resposta dada pelo escravo (ARM) é composta por 3 bytes: O primeiro byte é o de estado e os dois seguintes correspondem a `CMD+N P`, ou seja, o número do comando e o número do equipamento no segundo byte e o número do parâmetro ou da ação executada no terceiro byte.
-
-.Bytes de Estado para a Resposta do Escravo
+.Códigos de estado para a resposta a um comando
 [options="headers"]
 |===
-| Comando executado com sucesso | `e0`
-| Erro durante a execução do comando | `e1`
-| Comando desconhecido | `e2`
-| Número de bytes de dados incorretos | `e3`
-| Erro na syntaxe do comando | `e4`
-| Parâmetro ou ação inexistente | `e5`
-| Dados incorretos | `e6` 
-| Erro não determinado | `e7`
+| Descrição | _status-code_
+| Comando executado com sucesso | `success`
+| Erro durante a execução do comando | `exec-error`
+| Comando desconhecido | `unknown-command`
+| Número de bytes de dados incorretos | `parameter-error`
+| Erro na syntaxe do comando | `syntax-error`
+| Parâmetro ou ação inexistente | `unknown-parameter`
+| Dados incorretos | `wrong-parameter`
+| Módulo de equipamento não existe | `wrong-module`
+| Erro não determinado | `undetermined`
+|===
+
+=== Comandos Gerais
+
+O comando pode ser geral, para todo o equipamento, ou específicos para um módulo, por exemplo, específico para o respirador ou para uma bomba de infusão.
+
+.Comandos Gerais
+|===
+| Nome | Descrição
+| `firmware` | retorna a versão do firmware instalado
 |===
 
 === Respirador
 
-.Ações para o Respirador
-[cols="<2,^,^", options="header"]
+.Comandos que executam ações
+[cols="<2,<", options="header"]
 |===
-| Nome da Ação | `CMD+N` | `P`
-| Para o processo | `00` | `00`
-| Continua o processo | `00` | `01` 
-| Coloca o cilindro na posição 0 (o processo deve estar parado)  | `00` | `02`
+| Nome da Ação | Comando
+| Para o processo | `stop`
+| Continua o processo | `resume`
+| Coloca o cilindro na posição 0 (o processo deve estar parado)  | `origin`
 |===
 
+Exemplo:
+
+* Raspberry: `r:stop \n`
+* ARM: `r:stop _status-code_ \n`
+
 .Parâmetros para o Respirador
-[cols="<5,^,^,^,^,^", options="header"]
+[cols="<,<4,^,>,<", options="header"]
 |===
-| Parâmetro | `P` | Tipo | _Default_| Unidade | Acesso 
-| Firmware Version, tamanho variável | `00` | _uint8_[n] | software_firmware | | RO 
-| Modo de operação, da tabela "Modos de Operação" | `01` | _uint_8_ | 0 | | RW 
-| Volume de ar inspirado | `02` | _float_32_ | 200 | mL | RW
-| Volume de O~2~ inspirado | `03` | _float_32_ | 0 | mL | RW
-| Tempo total de inspiração (s) | `04` |  _float_32_ | 0,4 | s | RW
-| Volume expirado forçado | `05` | _float_32_ | 0 | mL | RW
-| Tempo de expiração forçada | `05` | _float_32_ | 0 | s | RW
-| Tempo de expiração natural | `06` | _float_32_ | 0,6 | s | RW
-| Pressão positiva máxima | `07` | _float_32_ | 0,1 | Bar | RW
-| Pressão negativa máxima (valor absoluto) | `08` | _float_32_ | 0,05 | Bar | RW
+| Parâmetro | Descrição | Tipo | _Default_ | Unidade
+| `mode` | Modo de operação, da tabela "Modos de Operação" | _uint_ | 0 |
+| `air` | Volume de ar inspirado | _int32_ | 200 | mL
+| `O2` | Volume de O~2~ a inspirado | _int32_ | 0 | mL
+| `total-time` | Tempo total de inspiração | _int32_ | 400 | ms
+| `vexp`  | Volume expirado forçado | _int32_ | 0 | mL
+| `texpf` | Tempo de expiração forçada | _int32_ | 0 | ms
+| `texpn` | Tempo de expiração natural | _int32_ | 600 | ms
+| `ppress` | Valor da pressão positiva máxima | _int32_ | 80 | mmHg
+| `npress` | Valor da pressão negativa máxima (valor absoluto) | _int32_ | 20 | mmHg
 |===
 
 .Modos de Operação
 [cols="2", option="headers"]
 |===
-| Modo de operação | Byte
-| Inspiração a fluxo constante | 0x00
-| Inspiração a pressão constante | 0x01
+| Modo de operação | Valor
+| Inspiração a fluxo constante | 0
+| Inspiração a pressão constante | 1
 |===
+
+Exemplos:
+
+* Para alterar o modo de operação para pressão constante:
+
+** Rasp: `r:mode! 1\n`
+** ARM: `r:mode! _status-code_\n`
+
+* Para ler o modo de operação:
+
+** Rasp: `r:mode\n`
+** ARM: `r:mode 1\n`
 
 === Bombas de Infusão
 
 .Ações para a Bomba de Infusão
-[cols="<5,^", options="header"]
+[cols="<,<5", options="header"]
 |===
-| Nome da Ação (`CMD=0`, `N=0,1,2,3`) | `P`
-| Avança até o final do curso e depois volta para a posição inicial, a seringa deve estar ausente, caso contrário, não executa a ação e retorna erro. | `00`
-| Habilita o processo | `01` 
-| Desabilita o processo  | `02`
+| Comando | Descrição
+| calib | Avança até o final do curso e depois volta para a posição inicial, a seringa deve estar ausente, caso contrário, não executa a ação e retorna erro.
+| start | Habilita o processo
+| stop | Desabilita o processo.
 |===
 
 Exemplo:
 
 * Para calibrar a bomba de infusão número 2:
-+
-Pacote de dados: `02 00`
-+
-Transmissão: `80 00 02 00 80 00`
-+
-Resposta em caso de sucesso: `80 00 e0 02 00 80 00`
-+
-Em caso de não conseguir atingir sensores: `80 00 e1 02 00 80 00`
 
-.Parâmetros para o Respirador
-[cols="<5,^,^,^,^,^", options="header"]
+** Rasp: `2:calib\n`
+** Resposta em caso de sucesso: `2:calib success\n`
+** Em caso de não conseguir atingir sensores: `2:calib exec-error\n`
+
+.Parâmetros para as bombas de infusão
+[cols="<,<4,^,>,<,^", options="header"]
 |===
-| Parâmetro | `P` | Tipo |  _Default_ | Unidade | Acesso
-| Retorna posição atual do êmbolo em passos, negativo se o valor não está calibrado | `00` | _int_32_| -1 | passos | RO
-| Retorna o valor máximo de passos do sistema mecânico, se estiver calibrado, se não, retorna -1 | `01` | _int32_ | -1 | passos | RO 
-| Retorna verdadeiro se o sensor de seringa está pressionado | `02` | _int8_ | | Boolean | RO
-| Registro de voltas a executar: executa um passo e decrementa o parâmetro ou registrador. Repete o ciclo até o registrador estar zerado. A leitura desse parâmetro indica o número de passos que faltam para terminar o processo. O tempo de intervalo entre cada passo é determinado pelo registrador seguinte | `03` | _int32_ | 0 | passos | RW
-| Intervalo de tempo entre cada passo, utilizado para a instrução acima. | `04` | _float32_ | 200 | us | RW 
+| Parâmetro | Descrição | Tipo | _Default_ | Unidade | Acesso
+| `steps` | Posição atual do êmbolo em passos, retorna -1 se o valor não está calibrado  | _int32_ | | passos | RO
+| `max-steps` | Valor máximo de passos do sistema mecânico, se estiver calibrado, se não, retorna -1 | _int32_ | | passos | RO
+| `ser`| Retorna verdadeiro se o sensor de seringa está pressionado | _boolean_ | `false` | | RO
+| `go` | Registro de voltas a executar: executa um passo e decrementa o parâmetro ou registrador. Repete o ciclo até o registrador estar zerado. A leitura desse parâmetro indica o número de passos que faltam para terminar o processo. O tempo de intervalo entre cada passo é determinado pelo registrador `time-step` | _int32_ | 0 | passos | RW
+| `time-step` | Intervalo de tempo entre cada passo, utilizado para a instrução acima. | _int32_ | 200 | us | RW 
 |===
