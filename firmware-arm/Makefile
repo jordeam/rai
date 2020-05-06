@@ -53,21 +53,21 @@ vpath %.a lib
 ROOT=$(shell pwd)
 
 # Includes
-CFLAGS += -Ilib/Core/cmsis -Ilib/Core/stm32
-CFLAGS += -Ilib/Conf
+CFLAGS += -I../../STLibrary/Core/cmsis -I../../STLibrary/Core/stm32
+CFLAGS += -I../../STLibrary/Conf
 
 # Library paths
-LIBPATHS = -Llib/StdPeriph -Llib/USB_Device/Core
-LIBPATHS += -Llib/USB_Device/Class/cdc -Llib/USB_OTG
+LIBPATHS = -L../../STLibrary/StdPeriph -L../../STLibrary/USB_Device/Core
+LIBPATHS += -L../../STLibrary/USB_Device/Class/cdc -L../../STLibrary/USB_OTG
 
 # Libraries to link
 LIBS = -lm -lstdperiph -lusbdevcore -lusbdevcdc -lusbcore
 
 # Extra includes
-CFLAGS += -Ilib/StdPeriph/inc
-CFLAGS += -Ilib/USB_OTG/inc
-CFLAGS += -Ilib/USB_Device/Core/inc
-CFLAGS += -Ilib/USB_Device/Class/cdc/inc
+CFLAGS += -I../../STLibrary/StdPeriph/inc
+CFLAGS += -I../../STLibrary/USB_OTG/inc
+CFLAGS += -I../../STLibrary/USB_Device/Core/inc
+CFLAGS += -I../../STLibrary/USB_Device/Class/cdc/inc
 
 # add startup file to build
 SRCS += startup_stm32f4xx.S
