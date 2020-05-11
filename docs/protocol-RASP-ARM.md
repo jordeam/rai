@@ -45,11 +45,11 @@ A resposta do ARM:
 | Comando executado com sucesso | `success`
 | Erro durante a execução do comando | `exec-error`
 | Comando desconhecido | `unknown-command`
-| Número de bytes de dados incorretos | `parameter-error`
-| Erro na syntaxe do comando | `syntax-error`
-| Parâmetro ou ação inexistente | `unknown-parameter`
-| Dados incorretos | `wrong-parameter`
-| Módulo de equipamento não existe | `wrong-module`
+| Número de parâmetros incorretos | `parameter-number-error`
+| Módulo não existente | `unknown-module`
+| Tentativa de escrever em parâmetro somente leitura | `read-only-parameter`
+| Tentative de ler parâmetro somente escrita | `write-only-parameter`
+| Comando somente de execução | `exec-only-cmd`
 | Erro não determinado | `undetermined`
 |===
 
@@ -69,9 +69,8 @@ O comando pode ser geral, para todo o equipamento, ou específicos para um módu
 [cols="<2,<", options="header"]
 |===
 | Nome da Ação | Comando
-| Para o processo | `stop`
-| Continua o processo | `resume`
-| Coloca o cilindro na posição 0 (o processo deve estar parado)  | `origin`
+| Para o processo, colocando o cilindro na posição inicial | `stop`
+| Inicia o processo | `start`
 |===
 
 Exemplo:
@@ -84,14 +83,14 @@ Exemplo:
 |===
 | Parâmetro | Descrição | Tipo | _Default_ | Unidade
 | `mode` | Modo de operação, da tabela "Modos de Operação" | _uint_ | 0 |
-| `air` | Volume de ar inspirado | _int32_ | 200 | mL
-| `O2` | Volume de O~2~ a inspirado | _int32_ | 0 | mL
-| `total-time` | Tempo total de inspiração | _int32_ | 400 | ms
-| `vexp`  | Volume expirado forçado | _int32_ | 0 | mL
-| `texpf` | Tempo de expiração forçada | _int32_ | 0 | ms
-| `texpn` | Tempo de expiração natural | _int32_ | 600 | ms
-| `ppress` | Valor da pressão positiva máxima | _int32_ | 80 | mmHg
-| `npress` | Valor da pressão negativa máxima (valor absoluto) | _int32_ | 20 | mmHg
+| `air` | Volume de ar inspirado | _uint32_ | 200 | mL
+| `O2` | Volume de O~2~ a inspirado | _uint32_ | 0 | mL
+| `insp-time` | Tempo total de inspiração | _uint32_ | 400 | ms
+| `vexp`  | Volume expirado forçado | _uint32_ | 0 | mL
+| `texpf` | Tempo de expiração forçada | _uint32_ | 0 | ms
+| `texpn` | Tempo de expiração natural | _uint32_ | 600 | ms
+| `ppress` | Valor da pressão positiva máxima | _uint32_ | 80 | mmHg
+| `npress` | Valor da pressão negativa máxima (valor absoluto) | _uint32_ | 20 | mmHg
 |===
 
 .Modos de Operação
@@ -120,9 +119,9 @@ Exemplos:
 [cols="<,<5", options="header"]
 |===
 | Comando | Descrição
-| calib | Avança até o final do curso e depois volta para a posição inicial, a seringa deve estar ausente, caso contrário, não executa a ação e retorna erro.
-| start | Habilita o processo
-| stop | Desabilita o processo.
+| `calib` | Avança até o final do curso e depois volta para a posição inicial, a seringa deve estar ausente, caso contrário, não executa a ação e retorna erro.
+| `start` | Habilita o processo
+| `stop` | Desabilita o processo.
 |===
 
 Exemplo:
@@ -137,9 +136,9 @@ Exemplo:
 [cols="<,<4,^,>,<,^", options="header"]
 |===
 | Parâmetro | Descrição | Tipo | _Default_ | Unidade | Acesso
-| `steps` | Posição atual do êmbolo em passos, retorna -1 se o valor não está calibrado  | _int32_ | | passos | RO
-| `max-steps` | Valor máximo de passos do sistema mecânico, se estiver calibrado, se não, retorna -1 | _int32_ | | passos | RO
+| `steps` | Posição atual do êmbolo em passos, retorna -1 se o valor não está calibrado  | _int32_ | -1 | passos | RO
+| `max-steps` | Valor máximo de passos do sistema mecânico, se estiver calibrado, se não, retorna -1 | _int32_ | -1 | passos | RO
 | `ser`| Retorna verdadeiro se o sensor de seringa está pressionado | _boolean_ | `false` | | RO
 | `go` | Registro de voltas a executar: executa um passo e decrementa o parâmetro ou registrador. Repete o ciclo até o registrador estar zerado. A leitura desse parâmetro indica o número de passos que faltam para terminar o processo. O tempo de intervalo entre cada passo é determinado pelo registrador `time-step` | _int32_ | 0 | passos | RW
-| `time-step` | Intervalo de tempo entre cada passo, utilizado para a instrução acima. | _int32_ | 200 | us | RW 
+| `time-step` | Intervalo de tempo entre cada passo, utilizado para a instrução acima. | _uint32_ | 200 | us | RW 
 |===
