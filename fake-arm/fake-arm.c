@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
   listen(listenfd, 10); 
     
   connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
-
   for(;;) {
+
     int n;
     n = read(connfd, recvBuff, BUFSIZ - 1);
     /* TODO n can be equal to BUFSIZ - 1*/
@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
     
     write(connfd, sendBuff, strlen(sendBuff)); 
 
-    sleep(1);
   }
 
   close(connfd);
