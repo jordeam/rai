@@ -26,7 +26,7 @@ Se você tem interesse em participar desse projeto, envie-nos uma mensagem para 
 * Mateus Martelini Souza
 * Suzana Vilas Boas
 * Vitor dos Reis
-* Yago Mello
+* Yago Teodoro de Mello
 
 === Firmware
 
