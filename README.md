@@ -1,5 +1,5 @@
 # rai
-Repository to Integrated Ventilator - RAI
+## Repository to Integrated Ventilator - RAI
 
 This repository is intended to hold the development of the embedded software in ARM.
 
