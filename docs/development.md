@@ -21,7 +21,7 @@ Se você tem interesse em participar desse projeto, envie-nos uma mensagem para 
 * Júlio César Faracco
 * Lucas José da Costa
 * Lucas Rosa Santos
-* Luiz Gustavo
+* Luiz Gustavo Soares Martins
 * Mateus Fernandes dos Santos
 * Mateus Martelini Souza
 * Suzana Vilas Boas
