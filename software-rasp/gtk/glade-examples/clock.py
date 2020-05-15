@@ -43,9 +43,9 @@ class Clock(Thread):
     def run(self):
         while self.alive:
             GLib.idle_add(self.__update_clock)
-            # 100ms to prove that update with
+            # 1s to prove that update with
             # Threads is able with GLib.
-            time.sleep(0.1)
+            time.sleep(1)
 
 class Handler:
     def __init__(self, label, button):
