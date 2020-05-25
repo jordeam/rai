@@ -142,3 +142,37 @@ Exemplo:
 | `go` | Registro de voltas a executar: executa um passo e decrementa o parâmetro ou registrador. Repete o ciclo até o registrador estar zerado. A leitura desse parâmetro indica o número de passos que faltam para terminar o processo. O tempo de intervalo entre cada passo é determinado pelo registrador `time-step` | _int32_ | 0 | passos | RW
 | `time-step` | Intervalo de tempo entre cada passo, utilizado para a instrução acima. | _uint32_ | 200 | us | RW 
 |===
+
+=== Medidor de Concentração de Oxigênio Dissolvido
+
+A sonda galvânica do medidor de concentração de oxigênio dissolvido é composta por dois eletrôdos, um cátodo de prata e um ânodo de zinco banhado em eletrólito, e uma membrana permeável ao oxigênio. As moléculas de O2 se difundem através da membrana e são reduzidas no cátodo, fazendo surgir uma pequena tensão proporcional à quantidade de oxigênio no líquido analisado.
+
+.Ações para o medidor de oxigênio dissolvido
+[cols="<,<5", options="header"]
+|===
+| Comando | Descrição
+| calib | Calibra a leitura do sensor. Parâmetro 1 para calibração do valor de máxima saturação e 0 para mínima saturação.
+| read	| Solicita a leitura do sensor. Parâmetro 1 para leitura em mg/L e 0 para porcentagem. Padrão em porcentagem.
+|===
+
+Exemplo:
+
+* Para calibrar a leitura de concentração máxima:
+
+** Rasp: `o:calib! 1\n`
+** Resposta em caso de sucesso: `o:calib success\n`
+** Em caso de não establiziação da leitura: `o:calib exec-error\n`
+
+* Para calibrar a leitura de concentração mínima:
+
+** Rasp: `o:calib! 0\n`
+** Resposta em caso de sucesso: `o:calib! success\n`
+** Em caso de não establiziação da leitura: `o:calib! exec-error\n`
+
+* Para leitura em porcentagem:
+
+** Rasp: `o:read 0\n`
+** Resposta em caso de sucesso: `r:read XX\n`
+** Em caso de falha da leitura: `o:calib exec-error\n`
+
+Onde XX é o valor de concentração, em porcentagem, lido pelo sensor.
