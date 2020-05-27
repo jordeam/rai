@@ -4,19 +4,16 @@ gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 
-class MyWindow(Gtk.Window):
-    def __init__(self):
-        Gtk.Window.__init__(self, title="Hello World")
+class Handler:
+    def OnDestroy(self,*args):
+        Gtk.main_quit()
+        
 
-        self.button = Gtk.Button(label="Click Here")
-        self.button.connect("clicked", self.on_button_clicked)
-        self.add(self.button)
+builder = Gtk.Builder()
+builder.add_from_file("main.glade")
+builder.connect_signals(Handler())
 
-    def on_button_clicked(self, widget):
-        print("Hello World")
+window = builder.get_object("window")
+window.show_all()
 
-
-win = MyWindow()
-win.connect("destroy", Gtk.main_quit)
-win.show_all()
 Gtk.main()
