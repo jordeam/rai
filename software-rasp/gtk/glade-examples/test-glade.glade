@@ -2,13 +2,9 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkImage" id="image1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="stock">gtk-missing-image</property>
-  </object>
   <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
+    <signal name="destroy" handler="onDestroy" swapped="no"/>
     <child>
       <placeholder/>
     </child>
@@ -18,15 +14,14 @@
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkImage">
+          <object class="GtkLabel">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="stock">gtk-delete</property>
+            <property name="label" translatable="yes">Exemplo de criação de applicação Glade-Python</property>
           </object>
           <packing>
             <property name="expand">False</property>
             <property name="fill">True</property>
-            <property name="padding">41</property>
             <property name="position">0</property>
           </packing>
         </child>
@@ -34,12 +29,11 @@
           <object class="GtkBox">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="homogeneous">True</property>
             <child>
               <object class="GtkLabel">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Número de alguma coisa: </property>
+                <property name="label" translatable="yes">Entre com um valor:</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -51,7 +45,7 @@
               <object class="GtkEntry">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="text" translatable="yes">1111</property>
+                <property name="text" translatable="yes">default</property>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -68,11 +62,11 @@
         </child>
         <child>
           <object class="GtkButton">
-            <property name="label" translatable="yes">Click aqui</property>
+            <property name="label" translatable="yes">Clique aqui</property>
             <property name="visible">True</property>
             <property name="can_focus">True</property>
             <property name="receives_default">True</property>
-            <signal name="clicked" handler="onButtonPressed" swapped="no"/>
+            <signal name="clicked" handler="onButtonClicked" swapped="no"/>
           </object>
           <packing>
             <property name="expand">False</property>

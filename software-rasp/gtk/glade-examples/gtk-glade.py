@@ -8,7 +8,7 @@ class Handler:
     def onDestroy(self, *args):
         Gtk.main_quit()
 
-    def onButtonPressed(self, button):
+    def onButtonClicked(self, button):
         print("Hello World!")
 
 

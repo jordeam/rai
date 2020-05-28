@@ -11,19 +11,22 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <pthread.h>
 
 #include "interpreter.h"
 #include "parameters.h"
 #include "commands.h"
+#include "interrupt.h"
 
 #ifndef BUFSIZ
 #define BUFSIZ 1024
 #endif
 
+#define MAX_COUNTER 1000
+
 /* Buffers are declared static */
 char sendBuff[BUFSIZ];
 char recvBuff[BUFSIZ];
-
 
 int main(int argc, char *argv[]) {
   int listenfd = 0, connfd = 0;
@@ -31,7 +34,12 @@ int main(int argc, char *argv[]) {
   int port = 5000;
   
   init_parameters();
-  
+
+  pthread_t trd;
+  int inter_data = MAX_COUNTER;
+  pthread_create(&trd, NULL, (void*) interval_code, &inter_data);
+
+    
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
   if (argc == 2)
@@ -68,5 +76,8 @@ int main(int argc, char *argv[]) {
 
   close(connfd);
   free(sendBuff);
+
+  pthread_join(trd, NULL);
+
   return 0;
 }

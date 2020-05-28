@@ -1,1 +1,11 @@
 /docs/protocol-RASP-ARM.html
+*.pdf
+*.aux
+*.log
+*.out
+*.synctex.gz
+*~
+*.html
+*.o
+/fake-arm/fake-arm
+/fake-arm/socket-client

@@ -1,0 +1,112 @@
+\documentclass[a4paper,twosides,10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english,brazilian]{babel}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{makeidx}
+%\usepackage{siunitx}
+\usepackage[squaren]{SIunits}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+%\usepackage% [html,3,sections+,next+]
+%{tex4ht}
+
+\setlength{\topmargin}{-12.5mm}
+\setlength{\headheight}{16pt}
+\setlength{\headsep}{10mm}
+ \setlength{\textheight}{245mm}
+
+ \setlength{\oddsidemargin}{0mm}
+ \setlength{\evensidemargin}{-14mm}
+ \setlength{\textwidth}{170mm}
+ 
+\begin{document}
+
+\textbf{Modelo Simplificado da Bomba de Ventilação}
+
+\vspace{1em}
+
+Símbolos:
+
+\begin{itemize}
+\item $A_{emb}$: área transversal do embolo;
+\item FIO$_2$: fração de O$_2$;
+\item $q_{EXP}$: vazão de expiração forçada;
+\item $q_{INS}$: vazão de inspiração;
+\item $T_{EXPF}$: tempo de expiração forçada;
+\item $T_{EXPN}$: tempo de expiração natural;
+\item $T_{INS}$: tempo total de inspiração;
+\item $V_{olEXP}$: volume de expiração forçada;
+\item $V_{olINS}$: volume total de ar/O$_2$ inspirado;
+\item $\omega$: velocidade angular do motor;
+\item $\omega_{MAX}$: velocidade angular máxima do motor;
+\end{itemize}
+
+\begin{equation}
+  \label{eq:aemb}
+  A_{emb} = \dfrac{\pi}{4}D_{emb}^2
+\end{equation}
+
+Posição máxima do cilindro para inspiração:
+
+\begin{equation}
+  \label{eq:xt}
+  x_T = \dfrac{V_{olINS}}{A_{emb}}
+\end{equation}
+
+Posição máxima do cilindro na expiração forçada:
+
+\begin{equation}
+  \label{eq:xexp}
+  x_{EXP} = \dfrac{q_{EXP}}{A_{emb}k_{pol}} = \dfrac{V_{olEXP}}{T_{EXPF}A_{emb}k_{pol}}
+\end{equation}
+
+Constante de transmissão:
+
+\begin{equation}
+  \label{eq:kpol}
+  k_{pol} = \dfrac{D_2 D}{D_1} \; ,
+\end{equation}
+
+\noindent onde $D$ é o diâmetro da polia do motor, $D_1$ é o diâmetro maior da polia da cremalheira e $D_2$ é o diâmetro menor da polia da cremalheira, que fica em contato com ela.
+
+São 5 fases ou estados no total:
+
+\begin{itemize}
+\item \textbf{Fase 1}: Deve durar $T_{EXPN}$
+  posição final: $x = 0$
+  
+  $\omega = \omega_{MAX}$
+
+\item \textbf{Fase 2}: de $x = 0$ a $x = x_{O2}$
+
+    $\omega = \omega_{MAX}$
+
+    $x_{O2} = (\mathrm{FIO_2} - 0.2) x_T$
+
+  \item \textbf{Fase 3}: de $x = x_{O2}$ a $x = x_T$
+
+    $\omega = \omega_{MAX}$
+
+  \item \textbf{Fase 4}: de $x = x_T$ a $x = 0$
+
+    $\omega = - \dfrac{q_{INS}}{A_{emb}k_{pol}} = - \dfrac{-V_{olINS}}{T_{INS}A_{emb}k_{pol}}$
+    
+  \item \textbf{Fase 5}: de $x = 0$ a $x = x_{EXP}$
+
+    $\omega = \dfrac{q_{EXP}}{A_{emb}k_{pol}} = \dfrac{V_{olEXP}}{T_{EXPF}A_{emb}k_{pol}}$
+    
+\end{itemize}
+
+
+
+\end{document}
+ 
+
