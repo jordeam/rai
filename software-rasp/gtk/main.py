@@ -15,15 +15,28 @@ class GUI:
         Gtk.main_quit()
 
     def on_Calcular1_clicked(self, Calcular1):
-        self.Peso1 = self.builder.get_object("Peso1")
-        self.Altura1 = self.builder.get_object("Altura1")
-        self.vol_respirado = self.builder.get_object("vol_respirado")
+        self.Peso1 =              self.builder.get_object("Peso1")
+        self.Altura1 =            self.builder.get_object("Altura1")
+        self.vol_respirado =      self.builder.get_object("vol_respirado")
+        self.tempo_inspira =      self.builder.get_object("tempo_inspira")
+        self.frac_C02 =           self.builder.get_object("frac_C02")
+        self.Tempo_exp_forçada =  self.builder.get_object("Tempo_exp_forçada")
+        self.Press_max_insp =     self.builder.get_object("Press_max_insp")
+        self.press_max_exp =      self.builder.get_object("press_max_exp")
+        self.time_exp =           self.builder.get_object("time_exp")
+
+
         self.peso = float(self.Peso1.get_text())
         self.altura = float(self.Altura1.get_text())
         self.imc = str(float(self.peso/(self.altura*self.altura)))
-        print("Peso",self.peso)
-        print("Altura",self.altura)
         self.vol_respirado.set_text(self.imc)
+        self.tempo_inspira.set_text(self.imc)
+        self.frac_C02.set_text(self.imc)
+        self.Tempo_exp_forçada.set_text(self.imc)
+        self.Press_max_insp.set_text(self.imc)
+        self.press_max_exp.set_text(self.imc)
+        self.time_exp.set_text(self.imc)
+
 
 if __name__ == "__main__":
     main = GUI()
