@@ -120,8 +120,7 @@ nav ul li a, nav ul li span, header .action {
 }
 
 .content textarea {
-  min-height: 12em;
-  resize: vertical;
+  max-height: 1em;
 }
 
 input.danger {

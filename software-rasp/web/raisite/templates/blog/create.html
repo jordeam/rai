@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Novo Post{% endblock %}</h1>
+  <h1>{% block title %}Dados da pessoa{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
   <form method="post">
-    <label for="title">Título</label>
+    <label for="title">Idade</label>
     <input name="title" id="title" value="{{ request.form['title'] }}" required>
-    <label for="body">Corpo</label>
-    <textarea name="body" id="body">{{ request.form['body'] }}</textarea>
+    <label for="body">Peso</label>
+    <input name="body" id="body">{{ request.form['body'] }}</input>
     <input type="submit" value="Save">
   </form>
 {% endblock %}
