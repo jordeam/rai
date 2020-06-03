@@ -15,15 +15,15 @@ class GUI:
         Gtk.main_quit()
 
     def on_Calcular1_clicked(self, Calcular1):
-        self.Peso1 =	 	 self.builder.get_object("Peso1")
-        self.Altura1 =		 self.builder.get_object("Altura1")
-        self.vol_respirado = 	 self.builder.get_object("vol_respirado")
-        self.tempo_inspira = 	 self.builder.get_object("tempo_inspira")
-        self.frac_C02 = 	 self.builder.get_object("frac_C02")
-        self.Tempo_exp_forçada = self.builder.get_object("Tempo_exp_forçada")
-        self.Press_max_insp = 	 self.builder.get_object("Press_max_insp")
-        self.press_max_exp = 	 self.builder.get_object("press_max_exp")
-        self.time_exp = 	 self.builder.get_object("time_exp")
+        self.Peso1 =              self.builder.get_object("Peso1")
+        self.Altura1 =            self.builder.get_object("Altura1")
+        self.vol_respirado =      self.builder.get_object("vol_respirado")
+        self.tempo_inspira =      self.builder.get_object("tempo_inspira")
+        self.frac_C02 =           self.builder.get_object("frac_C02")
+        self.Tempo_exp_forçada =  self.builder.get_object("Tempo_exp_forçada")
+        self.Press_max_insp =     self.builder.get_object("Press_max_insp")
+        self.press_max_exp =      self.builder.get_object("press_max_exp")
+        self.time_exp =           self.builder.get_object("time_exp")
 
 
         self.peso = float(self.Peso1.get_text())
