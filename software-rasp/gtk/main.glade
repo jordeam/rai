@@ -2,8 +2,9 @@
 <!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
-  <object class="GtkWindow" id="window">
+  <object class="GtkWindow" id="window1">
     <property name="can_focus">False</property>
+    <signal name="destroy" handler="onDestroy" swapped="no"/>
     <child>
       <placeholder/>
     </child>
@@ -396,16 +397,6 @@ dissolvido</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="Peso1">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">1</property>
-                                <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkEntry" id="Altura1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
@@ -426,6 +417,16 @@ dissolvido</property>
                                 <property name="top_attach">1</property>
                               </packing>
                             </child>
+                            <child>
+                              <object class="GtkEntry" id="Peso1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="top_attach">0</property>
+                              </packing>
+                            </child>
                           </object>
                           <packing>
                             <property name="left_attach">0</property>
@@ -443,6 +444,7 @@ dissolvido</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <signal name="clicked" handler="on_Calcular1_clicked" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
