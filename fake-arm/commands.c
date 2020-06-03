@@ -14,6 +14,8 @@ int air_post(char *cmd, char *data) {
 
 extern float FIO2;
 int FIO2_post(char *cmd, char *data) {
+  if (vent_params.FIO2 > 100) vent_params.FIO2 = 100;
+  else if (vent_params.FIO2 < 20) vent_params.FIO2 = 20;
   FIO2 = vent_params.FIO2 * 1e-2;
   return 0;
 }

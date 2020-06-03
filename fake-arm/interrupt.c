@@ -15,7 +15,7 @@
 #define NUM_PHASES 5
 
 /* Number of log lines */
-#define NUMLOGS 1000
+#define NUMLOGS 2000
 
 /* Number of log lines to call write function */
 #define NLOGSPERWRITE 200
@@ -37,6 +37,9 @@
 /* counts each interruption */
 uint32_t timer_i = 0;
 
+/* natural expiration counter */
+int expn_i = 0;
+
 int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* constants */
@@ -45,7 +48,7 @@ int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* Input parameters */
 int ventilator_run = 1;
-float FIO2 = 0.2, VolINS = 0.4e-3, T_INS = 0.600, VolEXPF = 0.150e-3, T_EXPF = 0.4, T_EXPN = 1;
+float FIO2 = 0.3, VolINS = 0.4e-3, T_INS = 0.600, VolEXPF = 0.150e-3, T_EXPF = 0.4, T_EXPN = 1;
 
 /* variables */
 float x_O2, q_INS, kPOL = (r_m / r_1), x_EXPF, q_EXPF;
@@ -55,22 +58,17 @@ float x_e = r_2 * (r_m / r_1) * INIT_ANG;
 
 struct timespec t0;
 
-int phase1_pre(void);
-void phase1(void);
-int phase2_pre(void);
-void phase2(void);
-int phase3_pre(void);
-void phase3(void);
-int phase4_pre(void);
-void phase4(void);
-int phase5_pre(void);
-void phase5(void);
+void phase_reset(int phase_i);
+void phase_O2(int phase_i);
+void phase_air(int phase_i);
+void phase_insp(int phase_i);
+void phase_expf(int phase_i);
 
-phase_table_entry_t phase_table[5] = {{phase1_pre, phase1, NULL},
-                                      {phase2_pre, phase2, NULL},
-                                      {phase3_pre, phase3, NULL},
-                                      {phase4_pre, phase4, NULL},
-                                      {phase5_pre, phase5, NULL}};
+phase_fcn phase_table[5] = {phase_reset,
+                            phase_O2,
+                            phase_air,
+                            phase_insp,
+                            phase_expf};
 
 struct log_block {
   int timer_i;
@@ -88,7 +86,8 @@ int lpos = 0;
 /* back position for data log */
 int blpos = -1;
 
-int phase1_pre(void) {
+void phase_reset(int phase_i) {
+  if (phase_i ==0) {
     /* Valves */
     V1 = V2 = V3 = V4 = 0;
     V5 = V6 = 1;
@@ -97,88 +96,97 @@ int phase1_pre(void) {
     }
     else
       omega_m = -OMEGA_MAX;
-    /* reset phase_i counter to timerize natrual expiration */
-    phase_i = 0;
-    return /* success*/ 1;
-}
-
-void phase1(void) {
+    /* reset expn_i counter to timerize natural expiration */
+    expn_i = 0;
+    phase_i_inc();
+  }
+  /* phase */
   if (x_e <= 0) {
     omega_m = 0;
-    if (ventilator_run)
-      switch_to_next_phase();
+    if (ventilator_run) {
+      if (FIO2 <= 0.22)
+        phase_set(2 /* air */);
+      else 
+        phase_next();
+    }
+    /* else stay in phase 1 */
   }
   else
     omega_m = -OMEGA_MAX;
 }
 
-int phase2_pre(void) {
-  /* Valves */
-  V1 = V3 = V4 = V5 = 0;
-  V2 = V6 = 1;  
-  /* must synchronize reading of VolINS and FIO2 with other thread */
-  x_T = VolINS/A_e;
-  x_O2 = (FIO2 - 0.2) / 0.8 * x_T;
+void phase_O2(int phase_i) {
+  /* entering phase */
+  if (phase_i ==0) {
+    /* Valves */
+    V1 = V3 = V4 = V5 = 0;
+    V2 = V6 = 1;  
+    /* must synchronize reading of VolINS and FIO2 with other thread */
+    x_T = VolINS/A_e;
+    x_O2 = (FIO2 - 0.2) / 0.8 * x_T;
+    phase_i_inc();
+  }
+  /* phase */
   omega_m = OMEGA_MAX;
-  return /* success */ 1;
-}
-
-void phase2(void) {
   if (x_e >= x_O2)
-    switch_to_next_phase();
+    phase_next();
 }
 
-int phase3_pre(void) {
-  V1 = V6 = 1;
-  V2 = V3 = V4 = V5 = 0;
-  return /* success */ 1;
-}
-
-void phase3(void) {
+void phase_air(int phase_i) {
+  /* entering phase */
+  if (phase_i ==0) {
+    V1 = V6 = 1;
+    V2 = V3 = V4 = V5 = 0;
+    x_T = VolINS/A_e;
+    phase_i_inc();
+  }
+  /* phase */
   if (x_e >= x_T)
     /* stop motor */
-    
     omega_m = 0;
-
+  else
+    omega_m = OMEGA_MAX;
+  
   /* Natural expiration time, begins with phase 1 */
   /* must synchronize the reading of T_EXPN with other thread */
-  if (phase_i * INTERVAL * 1e-6 > T_EXPN)
-    switch_to_next_phase();
+  if (expn_i * INTERVAL * 1e-6 > T_EXPN)
+    phase_next();
 }
 
-int phase4_pre(void) {
-  V3 = 1;
-  V1 = V2 = V4 = V5 = V6 = 0;
-  /* must synchronize reading of VolINS and T_INS with other thread */
-  q_INS = VolINS / T_INS;
-  omega_m = -q_INS / (A_e * r_2 * kPOL);
-  return /* success */ 1;
-}
-
-void phase4(void) {
+void phase_insp(int phase_i) {
+  /* entering phase */
+  if (phase_i ==0) {
+    V3 = 1;
+    V1 = V2 = V4 = V5 = V6 = 0;
+    /* must synchronize reading of VolINS and T_INS with other thread */
+    q_INS = VolINS / T_INS;
+    omega_m = -q_INS / (A_e * r_2 * kPOL);
+    phase_i_inc();
+  }
+  /* phase */
   if (x_e <= 0) {
     omega_m = 0;
     if (T_EXPF > 0 && VolEXPF > 0)
-      switch_to_next_phase();
+      phase_next();
     else
-      switch_to_phase(0 /* phase 1*/);
+      phase_set(0 /* reset position */);
   }
 }
 
-int phase5_pre(void) {
-  V1 = V2 = V3 = V5 = V6;
-  V4 = 1;
-  /* must synchronize the reading of VolEXP and T_EXPF with other thread */
-  x_EXPF = VolEXPF / A_e;
-  q_EXPF = VolEXPF / T_EXPF;
-  omega_m = q_EXPF / (A_e * r_2 * kPOL);
-  return /* success */ 1;
-}
-
-void phase5(void) {
+void phase_expf(int phase_i) {
+  /* entering phase */
+  if (phase_i ==0) {
+    V1 = V2 = V3 = V5 = V6;
+    V4 = 1;
+    /* must synchronize the reading of VolEXP and T_EXPF with other thread */
+    x_EXPF = VolEXPF / A_e;
+    q_EXPF = VolEXPF / T_EXPF;
+    omega_m = q_EXPF / (A_e * r_2 * kPOL);
+    phase_i_inc();
+  }
   if (x_e >= x_EXPF) {
     omega_m = 0;
-    switch_to_next_phase();
+    phase_next();
   }
 }
 
@@ -187,7 +195,7 @@ void print_status(void) {
   double t1;
   clock_gettime(CLOCK_REALTIME, &ta);
   t1 = (ta.tv_sec - t0.tv_sec) + (ta.tv_nsec - t0.tv_nsec) * 1e-9;
-  /* printf("%08.3f %1d  %1d  %1d  %1d  %1d  %1d  %1d  %07d %07.1f %07.3f\n", t1, phase + 1, V1, V2, V3, V4, V5, V6, phase_i, omega_m, x_e); */
+  /* printf("%08.3f %1d  %1d  %1d  %1d  %1d  %1d  %1d  %07d %07.1f %07.3f\n", t1, phase, V1, V2, V3, V4, V5, V6, expn_i, omega_m, x_e); */
 }
 
 void write_data(void * data) {
@@ -195,7 +203,7 @@ void write_data(void * data) {
   int i = blpos, count;
   /* printf("Writing data timer_i=%d lpos=%d blpos=%d\n", timer_i, lpos, blpos); */
   for (count = 0; count < NUMLOGS && i != lpos; count++)  {
-    fprintf (f, "%f %d %d %d %d %d %d %d 0 0 %f\n", (float) data_log[i].timer_i / INTERVAL, data_log[i].phase + 1, data_log[i].v1, data_log[i].v2, data_log[i].v3, data_log[i].v4, data_log[i].v5, data_log[i].v6, data_log[i].x_e);
+    fprintf (f, "%f %d %d %d %d %d %d %d 0 0 %f\n", (float) data_log[i].timer_i / INTERVAL, data_log[i].phase, data_log[i].v1, data_log[i].v2, data_log[i].v3, data_log[i].v4, data_log[i].v5, data_log[i].v6, data_log[i].x_e);
     i++;
     if (i >= NUMLOGS)
       i = 0;
@@ -224,10 +232,12 @@ void state_equations(void) {
   dt = 1e-3;
   theta_m += omega_m * dt;
   x_e = theta_m * r_2 * kPOL;
+
+  /* Logger */
   /* log data each 5 ms */
   if (timer_i % 5 == 0) {
     data_log[lpos].timer_i = timer_i;
-    data_log[lpos].phase = phase;
+    data_log[lpos].phase = phase_get();
     data_log[lpos].v1 = V1;
     data_log[lpos].v2 = V2;
     data_log[lpos].v3 = V3;
@@ -256,18 +266,21 @@ void state_equations(void) {
 
 void init_interrupt(void) {
   /* print_status header */
-  printf("# t  phase  V1 V2 V3 V4 V5 V6 phase_i omega_m x_e\n");
-  phase_init(print_status, NUM_PHASES, phase_table, state_equations);
+  printf("# t  phase  V1 V2 V3 V4 V5 V6 expn_i omega_m x_e\n");
+  phase_init(0, print_status, NUM_PHASES, &phase_table[0], state_equations);
   state_equations();
   clock_gettime(CLOCK_REALTIME, &t0);
 }
 
 static void interrupt_1ms(int delta_t) {
   /* ARM code executed each 1ms goes here*/
-  do_phase(phase);
+  phase_exec();
 
   /* interrupt counter */
   timer_i++;
+
+  /* timer for phases */
+  expn_i++;
 }
 
 void * interval_code(int *max_counter) {
