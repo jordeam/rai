@@ -9,3 +9,5 @@
 *.o
 /fake-arm/fake-arm
 /fake-arm/socket-client
+*.dat
+\#*#

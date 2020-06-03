@@ -13,12 +13,12 @@ void init_parameters(void) {
   global_params.firmware = FIRMWARE_VERSION;
   
   vent_params.mode = 0;
-  vent_params.air = 200;
-  vent_params.O2 = 0;
-  vent_params.insp_time = 400;
-  vent_params.vexp = 0;
-  vent_params.texpf = 0;
-  vent_params.texpn = 600;
+  vent_params.air = 400;
+  vent_params.FIO2 = 30;
+  vent_params.insp_time = 600;
+  vent_params.vexp = 150;
+  vent_params.texpf = 400;
+  vent_params.texpn = 1000;
   vent_params.ppress = 80;
   vent_params.npress = 20;
 

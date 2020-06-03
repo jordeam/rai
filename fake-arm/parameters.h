@@ -14,7 +14,7 @@ typedef struct global_parameters global_parameters_t;
 struct ventilator_parameters {
   uint8_t mode;
   uint32_t air;
-  uint32_t O2;
+  uint32_t FIO2;
   uint32_t insp_time;
   uint32_t vexp;
   uint32_t texpf;

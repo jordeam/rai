@@ -7,7 +7,7 @@ GLIB_CFLAGS = $(shell pkg-config --cflags glib-2.0)
 GLIB_LDFLAGS = $(shell pkg-config --libs glib-2.0)
 
 IPATH   = -I.
-OBJOPT  = -O0 -Wall -fPIC     # option for obj
+OBJOPT  = -O0 -Wall -Wno-discarded-qualifiers -fPIC     # option for obj
 EXEOPT  = -O0 -Wall # -lgsl -lgslcblas -lm  -lbms -lretmono  # option for exe (-lefence ...)
 LPATH   = # -L../../lib           # path for librairies ... 
 
@@ -36,7 +36,7 @@ distclean: clean
 .c.o:
 	$(CC) $(CFLAGS) -c $< 
 
-fake-arm: interpreter.o parameters.o commands.o interrupt.o
+fake-arm: interpreter.o parameters.o commands.o interrupt.o state_phase.o
 
 curves: main
 	./main

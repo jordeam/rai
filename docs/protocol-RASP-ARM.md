@@ -83,8 +83,8 @@ Exemplo:
 |===
 | Parâmetro | Descrição | Tipo | _Default_ | Unidade
 | `mode` | Modo de operação, da tabela "Modos de Operação" | _uint_ | 0 |
-| `air` | Volume de ar inspirado | _uint32_ | 200 | mL
-| `O2` | Volume de O~2~ a inspirado | _uint32_ | 0 | mL
+| `air` | Volume total ar/O~2~ inspirado | _uint32_ | 400 | mL
+| `FIO2` | Fração de O~2~ a ser inspirado | _uint32_ | 20 | %
 | `insp-time` | Tempo total de inspiração | _uint32_ | 400 | ms
 | `vexp`  | Volume expirado forçado | _uint32_ | 0 | mL
 | `texpf` | Tempo de expiração forçada | _uint32_ | 0 | ms

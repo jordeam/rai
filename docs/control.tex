@@ -36,15 +36,21 @@
 Símbolos:
 
 \begin{itemize}
-\item $A_{emb}$: área transversal do embolo;
+\item $A_e$: área transversal interna do embolo;
+\item $D_{emb}$: diâmetro interno do êmbolo;
 \item FIO$_2$: fração de O$_2$;
 \item $q_{EXP}$: vazão de expiração forçada;
 \item $q_{INS}$: vazão de inspiração;
+\item $r_m$: raio da polia do motor;
+\item $r_1$: raio maior da polia da cremalheira;
+\item $r_2$: raio menor em contato com a cremalheira;
 \item $T_{EXPF}$: tempo de expiração forçada;
 \item $T_{EXPN}$: tempo de expiração natural;
 \item $T_{INS}$: tempo total de inspiração;
-\item $V_{olEXP}$: volume de expiração forçada;
+\item $V_{olEXPF}$: volume de expiração forçada;
 \item $V_{olINS}$: volume total de ar/O$_2$ inspirado;
+\item $x_e$: posição do êmbolo;
+\item $\theta_m$: posição angular do motor;
 \item $\omega$: velocidade angular do motor;
 \item $\omega_{MAX}$: velocidade angular máxima do motor;
 \end{itemize}
@@ -65,47 +71,56 @@ Posição máxima do cilindro na expiração forçada:
 
 \begin{equation}
   \label{eq:xexp}
-  x_{EXP} = \dfrac{q_{EXP}}{A_{emb}k_{pol}} = \dfrac{V_{olEXP}}{T_{EXPF}A_{emb}k_{pol}}
+  x_{EXPF} = \dfrac{V_{olEXP}}{A_{emb}}
 \end{equation}
 
 Constante de transmissão:
 
 \begin{equation}
   \label{eq:kpol}
-  k_{pol} = \dfrac{D_2 D}{D_1} \; ,
+  k_{POL} = \dfrac{r_m}{r_1} \; ,
 \end{equation}
 
-\noindent onde $D$ é o diâmetro da polia do motor, $D_1$ é o diâmetro maior da polia da cremalheira e $D_2$ é o diâmetro menor da polia da cremalheira, que fica em contato com ela.
+A posição do êmbolo é função do ângulo do motor:
+
+\begin{equation}
+  \label{eq:x-vs-theta_m}
+  x_e = r_2 k_{POL} \theta_m
+\end{equation}
 
 São 5 fases ou estados no total:
 
 \begin{itemize}
 \item \textbf{Fase 1}: Deve durar $T_{EXPN}$
+  
   posição final: $x = 0$
   
   $\omega = \omega_{MAX}$
 
 \item \textbf{Fase 2}: de $x = 0$ a $x = x_{O2}$
 
-    $\omega = \omega_{MAX}$
+  $\omega = \omega_{MAX}$
 
-    $x_{O2} = (\mathrm{FIO_2} - 0.2) x_T$
+  $x_{O2} = (\mathrm{FIO_2} - 0.2) x_T$
 
-  \item \textbf{Fase 3}: de $x = x_{O2}$ a $x = x_T$
+\item \textbf{Fase 3}: de $x = x_{O2}$ a $x = x_T$
 
-    $\omega = \omega_{MAX}$
+  $\omega = \omega_{MAX}$
 
-  \item \textbf{Fase 4}: de $x = x_T$ a $x = 0$
+\item \textbf{Fase 4}: de $x = x_T$ a $x = 0$
 
-    $\omega = - \dfrac{q_{INS}}{A_{emb}k_{pol}} = - \dfrac{-V_{olINS}}{T_{INS}A_{emb}k_{pol}}$
+  $q_{INS} = \dfrac{V_{olINS}}{T_{INS}}$
     
-  \item \textbf{Fase 5}: de $x = 0$ a $x = x_{EXP}$
 
-    $\omega = \dfrac{q_{EXP}}{A_{emb}k_{pol}} = \dfrac{V_{olEXP}}{T_{EXPF}A_{emb}k_{pol}}$
+  $\omega = - \dfrac{q_{INS}}{A_{emb} r_2 k_{POL}} $
+    
+\item \textbf{Fase 5}: de $x = 0$ a $x = x_{EXPF}$
+
+  $q_{EXPF} = \dfrac{V_{olEXPF}}{T_{EXPF}}$
+
+  $\omega = \dfrac{q_{EXPF}}{A_{emb} r_2 k_{POL}}$
     
 \end{itemize}
-
-
 
 \end{document}
  

@@ -13,8 +13,8 @@ struct command_table {
   enum command_access access;
   enum command_type type;
   size_t offset;
-  int (*pre_read)();
-  int (*post_write)();
+  int (*pre_read)(char *cmd);
+  int (*post_write)(char *cmd, char *data);
   char *info;
 };
 
@@ -24,6 +24,6 @@ int number_tokens(const char * s, int len);
 char * strtrim2(char *s);
 int split_tokens(char *s);
 char * get_token(char * s, int len, int n);
-void interpreter(char * s, char * sendBuff, int sendBuff_size, const void * baseaddr_params[], const command_table_t * cmdtab);
+void interpreter(char * s, char * sendBuff, int sendBuff_size, const void * baseaddr_params[],  const command_table_t * cmdtab);
 
 #endif

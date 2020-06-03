@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
   int port = 5000;
   
   init_parameters();
-
+  init_interrupt();
+  
   pthread_t trd;
   int inter_data = MAX_COUNTER;
   pthread_create(&trd, NULL, (void*) interval_code, &inter_data);
