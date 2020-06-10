@@ -54,6 +54,7 @@ class GUI:
 
         return self.peso, self.cal_vol_resp
 
+
 if __name__ == "__main__":
     main = GUI()
     Gtk.main()
