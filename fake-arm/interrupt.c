@@ -65,8 +65,10 @@
 /* equivalent angular friction */
 #define B_eq (b_e*(r_1 * r_3) / r_2 + B_2 * sqr(r_1/r_2) + B_1 + B_m)
 
+/* equivalent inercia momentum */
 #define J_eq (m_e*(r_1 * r_3) / r_2 + J_2 * sqr(r_1/r_2) + J_1 + J_m)
 
+/* valve macro for debug only */
 #define VSTAT(x) ((x) ? "ON " : "OFF")
 
 /* integrative constant for the control of interval between interrupts */
@@ -78,6 +80,7 @@ uint32_t timer_i = 0;
 /* natural expiration counter */
 int expn_i = 0;
 
+/* valve states */
 int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* constants */
@@ -86,7 +89,7 @@ int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* Input parameters */
 int ventilator_run = 1;
-float FIO2 = 0.3, VolINS = 0.4e-3, T_INS = 0.600, VolEXPF = 0.150e-3, T_EXPF = 0.4, T_EXPN = 1;
+float FIO2 = 0.3, VolINS = 0.4e-3, T_INS = 0.600, VolEXPF = 0.150e-3, T_EXPF = 0.0, T_EXPN = 1;
 
 /* variables */
 float x_O2, q_INS, kPOL = (r_1 / r_2), x_EXPF, q_EXPF;
