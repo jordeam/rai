@@ -1,6 +1,6 @@
 # Como testar 
 
-No terminal do linux digite:
+No terminal do linux digite os seguintes comandos:
 * $ export FLASK_APP=raisite
 * $ export FLASK_ENV=development
 * $ python3 -m flask init-db (para iniciar um banco de dados vazio)
