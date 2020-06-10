@@ -10,6 +10,8 @@
 #include "state_phase.h"
 #include "parameters.h"
 
+#define sqr(x) ((x)*(x))
+
 /* interval between interruptions in us */
 #define INTERVAL 1000
 #define NUM_PHASES 5
@@ -28,9 +30,41 @@
 #define INIT_ANG 40
 
 /* Machanic transmission parameters */
-#define r_m (15e-3 / 2)
-#define r_1 (150e-3 / 2)
-#define r_2 (15e-3 / 2)
+/* Motor pulley radius */
+#define r_1 (15e-3 / 2) 
+/* pulley larger radius */
+#define r_2 (150e-3 / 2)
+/* pulley smaller radius, in contact with rack */
+#define r_3 (15e-3 / 2)
+
+/* cilinder friction constant */
+#define b_e 0.2
+
+/* motor pulley angular friction constant */
+#define B_1 10e-6
+
+/* rack axis angular friction constant  */
+#define B_2 10e-6
+
+/* motor axis angular friction constant */
+#define B_m 10e-6
+
+/* mass of piston kg */
+#define m_e 0.37
+
+/* inertia momentum of pulley */
+#define J_2 1e-3
+
+/* inertia momentum of motor pulley */
+#define J_1 100e-6
+
+/* inertia momentum of motor rotor */
+#define J_m 200e-6
+
+/* equivalent angular friction */
+#define B_eq (b_e*(r_1 * r_3) / r_2 + B_2 * sqr(r_1/r_2) + B_1 + B_m
+
+#define J_eq (m_e*(r_1 * r_3) / r_2 + J_2 * sqr(r_1/r_2) + J_1 + J_m
 
 #define VSTAT(x) ((x) ? "ON " : "OFF")
 
@@ -54,10 +88,10 @@ int ventilator_run = 1;
 float FIO2 = 0.3, VolINS = 0.4e-3, T_INS = 0.600, VolEXPF = 0.150e-3, T_EXPF = 0.4, T_EXPN = 1;
 
 /* variables */
-float x_O2, q_INS, kPOL = (r_m / r_1), x_EXPF, q_EXPF;
+float x_O2, q_INS, kPOL = (r_1 / r_2), x_EXPF, q_EXPF;
 float omega_m = 0, x_T;
 float theta_m = INIT_ANG;
-float x_e = r_2 * (r_m / r_1) * INIT_ANG;
+float x_e = r_3 * (r_1 / r_2) * INIT_ANG;
 
 struct timespec t0;
 
@@ -190,7 +224,7 @@ int phase_inspiration(int phase_i) {
   else {
     if (phase_i == VALVE_OFF_INT + VALVE_ON_INT) {
       q_INS = VolINS / T_INS;
-      omega_m = -q_INS / (A_e * r_2 * kPOL);
+      omega_m = -q_INS / (A_e * r_3 * kPOL);
     }
     if (x_e <= 0) {
       omega_m = 0;
@@ -217,7 +251,7 @@ int phase_forced_expiration(int phase_i) {
       /* must synchronize the reading of VolEXP and T_EXPF with other thread */
       x_EXPF = VolEXPF / A_e;
       q_EXPF = VolEXPF / T_EXPF;
-      omega_m = q_EXPF / (A_e * r_2 * kPOL);
+      omega_m = q_EXPF / (A_e * r_3 * kPOL);
     }
     if (x_e >= x_EXPF) {
       omega_m = 0;
@@ -267,8 +301,9 @@ void state_equations(void) {
   /* eval dt */
   dt = ta.tv_sec - told.tv_sec + (ta.tv_nsec - told.tv_nsec) * 1e-9;
   dt = 1e-3;
+  /* state equations */
   theta_m += omega_m * dt;
-  x_e = theta_m * r_2 * kPOL;
+  x_e = theta_m * r_3 * kPOL;
 
   /* Logger */
   /* log data each 5 ms */
