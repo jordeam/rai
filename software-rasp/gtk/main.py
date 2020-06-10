@@ -50,7 +50,7 @@ class GUI:
         if self.genero == 'Feminino':
             self.peso = 45.5 + 2.3*(((self.altura*100)*0.394)-60) 
             self.cal_vol_resp = 6*self.peso
-            round(self.cal_vol_resp,1)
+            round(self.cal_vol_resp,2)
 
         return self.peso, self.cal_vol_resp
 
