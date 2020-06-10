@@ -1,4 +1,3 @@
-/docs/protocol-RASP-ARM.html
 *.pdf
 *.aux
 *.log
@@ -11,3 +10,4 @@
 /fake-arm/socket-client
 *.dat
 \#*#
+.idea
