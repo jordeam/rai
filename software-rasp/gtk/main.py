@@ -15,27 +15,44 @@ class GUI:
         Gtk.main_quit()
 
     def on_Calcular1_clicked(self, Calcular1):
-        self.Peso1 =              self.builder.get_object("Peso1")
-        self.Altura1 =            self.builder.get_object("Altura1")
-        self.vol_respirado =      self.builder.get_object("vol_respirado")
-        self.tempo_inspira =      self.builder.get_object("tempo_inspira")
-        self.frac_C02 =           self.builder.get_object("frac_C02")
-        self.Tempo_exp_forçada =  self.builder.get_object("Tempo_exp_forçada")
-        self.Press_max_insp =     self.builder.get_object("Press_max_insp")
-        self.press_max_exp =      self.builder.get_object("press_max_exp")
-        self.time_exp =           self.builder.get_object("time_exp")
+        self.Peso1 = self.builder.get_object("Peso1")
+        self.Altura1 = self.builder.get_object("Altura1")
 
-
+        self.vol_respirado = self.builder.get_object("vol_respirado")
+        self.grupo = self.builder.get_object("masculino") #variável do grupo do radio_button
         self.peso = float(self.Peso1.get_text())
         self.altura = float(self.Altura1.get_text())
-        self.imc = str(float(self.peso/(self.altura*self.altura)))
-        self.vol_respirado.set_text(self.imc)
-        self.tempo_inspira.set_text(self.imc)
-        self.frac_C02.set_text(self.imc)
-        self.Tempo_exp_forçada.set_text(self.imc)
-        self.Press_max_insp.set_text(self.imc)
-        self.press_max_exp.set_text(self.imc)
-        self.time_exp.set_text(self.imc)
+        self.genero = self.get_active_radio()
+
+        self.peso, self.cal_vol_resp = self.volume()
+
+        print("Peso:",self.peso)
+        print("Altura:",self.altura)
+        print("Gênero:",self.genero)
+        print("Volume Respirador:",self.cal_vol_resp)
+
+        self.vol_respirado.set_text(str(self.cal_vol_resp))
+
+    def get_active_radio(self):
+        radio_buttons = self.grupo.get_group()
+        # Percore a lista de botões e verifica qual botão está ativo
+        for radio in radio_buttons:
+            if radio.get_active():
+                # Retorna o Rótulo do Radio Button que está ativo
+                return radio.get_label()
+
+    def volume(self):
+        if self.genero == 'Masculino':
+            self.peso = 50 + 2.3*(((self.altura*100)*0.394)-60)
+            self.cal_vol_resp = 6*self.peso
+            round(self.cal_vol_resp,1)
+
+        if self.genero == 'Feminino':
+            self.peso = 45.5 + 2.3*(((self.altura*100)*0.394)-60) 
+            self.cal_vol_resp = 6*self.peso
+            round(self.cal_vol_resp,1)
+
+        return self.peso, self.cal_vol_resp
 
 
 if __name__ == "__main__":

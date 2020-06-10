@@ -466,20 +466,19 @@ dissolvido</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkBox" id="radio_button">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">15</property>
                                 <child>
-                                  <object class="GtkRadioButton" id="Masculino">
+                                  <object class="GtkRadioButton" id="masculino">
                                     <property name="label" translatable="yes">Masculino</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="use_underline">True</property>
                                     <property name="draw_indicator">True</property>
-                                    <property name="group">radiobutton1</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
@@ -488,13 +487,14 @@ dissolvido</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton1">
+                                  <object class="GtkRadioButton" id="feminino">
                                     <property name="label" translatable="yes">Feminino</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">False</property>
                                     <property name="halign">start</property>
                                     <property name="draw_indicator">True</property>
+                                    <property name="group">masculino</property>
                                   </object>
                                   <packing>
                                     <property name="expand">True</property>
