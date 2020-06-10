@@ -2,7 +2,7 @@
 <title>{% block title %}{% endblock %} - RAI</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-  <h1>Respirador Artificial Integrado</h1>
+  <img src="/static/logo-rai.png" alt="Logo RAI">
   <ul>
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span>
