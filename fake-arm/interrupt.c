@@ -14,6 +14,9 @@
 #define INTERVAL 1000
 #define NUM_PHASES 5
 
+#define VALVE_OFF_INT 10
+#define VALVE_ON_INT 10
+
 /* Number of log lines */
 #define NUMLOGS 2000
 
@@ -58,17 +61,17 @@ float x_e = r_2 * (r_m / r_1) * INIT_ANG;
 
 struct timespec t0;
 
-void phase_reset(int phase_i);
-void phase_O2(int phase_i);
-void phase_air(int phase_i);
-void phase_insp(int phase_i);
-void phase_expf(int phase_i);
+int phase_reset(int phase_i);
+int phase_O2(int phase_i);
+int phase_air(int phase_i);
+int phase_inspiration(int phase_i);
+int phase_forced_expiration(int phase_i);
 
 phase_fcn phase_table[5] = {phase_reset,
                             phase_O2,
                             phase_air,
-                            phase_insp,
-                            phase_expf};
+                            phase_inspiration,
+                            phase_forced_expiration};
 
 struct log_block {
   int timer_i;
@@ -86,22 +89,21 @@ int lpos = 0;
 /* back position for data log */
 int blpos = -1;
 
-void phase_reset(int phase_i) {
-  if (phase_i ==0) {
+int phase_reset(int phase_i) {
+  if (phase_i < VALVE_OFF_INT) {
+    /* 5ms for valves get closed? */
     /* Valves */
     V1 = V2 = V3 = V4 = 0;
+    omega_m = 0;
+  }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    /* more 5ms to valves open? */
     V5 = V6 = 1;
-    if (x_e <= 0) {
-      omega_m = 0;
-    }
-    else
-      omega_m = -OMEGA_MAX;
+    omega_m = 0;
     /* reset expn_i counter to timerize natural expiration */
     expn_i = 0;
-    phase_i_inc();
   }
-  /* phase */
-  if (x_e <= 0) {
+  else if (x_e <= 0) {
     omega_m = 0;
     if (ventilator_run) {
       if (FIO2 <= 0.22)
@@ -109,92 +111,127 @@ void phase_reset(int phase_i) {
       else 
         phase_next();
     }
-    /* else stay in phase 1 */
+    else {
+      /* else stay in phase 1 */
+      /* reset expn_i counter to timerize natural expiration */
+      expn_i = 0;
+      /* freeze phase internal counter */
+      --phase_i;
+    }
   }
   else
     omega_m = -OMEGA_MAX;
+  return ++phase_i;
 }
 
-void phase_O2(int phase_i) {
-  /* entering phase */
-  if (phase_i ==0) {
-    /* Valves */
+int phase_O2(int phase_i) {
+  if (phase_i < VALVE_OFF_INT) {
+    /* delay for valves to get closed */
     V1 = V3 = V4 = V5 = 0;
-    V2 = V6 = 1;  
-    /* must synchronize reading of VolINS and FIO2 with other thread */
-    x_T = VolINS/A_e;
-    x_O2 = (FIO2 - 0.2) / 0.8 * x_T;
-    phase_i_inc();
-  }
-  /* phase */
-  omega_m = OMEGA_MAX;
-  if (x_e >= x_O2)
-    phase_next();
-}
-
-void phase_air(int phase_i) {
-  /* entering phase */
-  if (phase_i ==0) {
-    V1 = V6 = 1;
-    V2 = V3 = V4 = V5 = 0;
-    x_T = VolINS/A_e;
-    phase_i_inc();
-  }
-  /* phase */
-  if (x_e >= x_T)
-    /* stop motor */
     omega_m = 0;
-  else
+  }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    /* Valves */
+    V2 = V6 = 1;
+    omega_m = 0;
+  }
+  else {
+    if (phase_i == VALVE_OFF_INT + VALVE_ON_INT) {
+      /* parameters */
+      x_T = VolINS/A_e;
+      x_O2 = (FIO2 - 0.2) / 0.8 * x_T;
+    }
     omega_m = OMEGA_MAX;
-  
-  /* Natural expiration time, begins with phase 1 */
-  /* must synchronize the reading of T_EXPN with other thread */
-  if (expn_i * INTERVAL * 1e-6 > T_EXPN)
-    phase_next();
-}
-
-void phase_insp(int phase_i) {
-  /* entering phase */
-  if (phase_i ==0) {
-    V3 = 1;
-    V1 = V2 = V4 = V5 = V6 = 0;
-    /* must synchronize reading of VolINS and T_INS with other thread */
-    q_INS = VolINS / T_INS;
-    omega_m = -q_INS / (A_e * r_2 * kPOL);
-    phase_i_inc();
-  }
-  /* phase */
-  if (x_e <= 0) {
-    omega_m = 0;
-    if (T_EXPF > 0 && VolEXPF > 0)
+    if (x_e >= x_O2) {
+      omega_m = 0;
       phase_next();
-    else
-      phase_set(0 /* reset position */);
+    }
   }
+  return ++phase_i;
 }
 
-void phase_expf(int phase_i) {
-  /* entering phase */
-  if (phase_i ==0) {
-    V1 = V2 = V3 = V5 = V6;
-    V4 = 1;
-    /* must synchronize the reading of VolEXP and T_EXPF with other thread */
-    x_EXPF = VolEXPF / A_e;
-    q_EXPF = VolEXPF / T_EXPF;
-    omega_m = q_EXPF / (A_e * r_2 * kPOL);
-    phase_i_inc();
-  }
-  if (x_e >= x_EXPF) {
+int phase_air(int phase_i) {
+  if (phase_i < VALVE_OFF_INT) {
+    V2 = V3 = V4 = V5 = 0;
     omega_m = 0;
-    phase_next();
   }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    if (x_e < x_T)
+      V1 = V6 = 1;
+  }
+  else {
+    if (phase_i == VALVE_OFF_INT + VALVE_ON_INT) {
+      x_T = VolINS/A_e;
+    }
+    if (x_e >= x_T) {
+      /* stop motor */
+      omega_m = 0;
+      /* Close air valve */
+      V1 = 0;
+    }
+    else
+      omega_m = OMEGA_MAX;
+    /* Natural expiration time, begins with phase 1 */
+    /* must synchronize the reading of T_EXPN with other thread */
+    if (expn_i * INTERVAL * 1e-6 > T_EXPN)
+      phase_next();
+  }
+  return ++phase_i;
+}
+
+int phase_inspiration(int phase_i) {
+  if (phase_i < VALVE_OFF_INT) {
+    V1 = V2 = V4 = V5 = V6 = 0;
+    omega_m = 0;
+  }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    V3 = 1;
+  }
+  else {
+    if (phase_i == VALVE_OFF_INT + VALVE_ON_INT) {
+      q_INS = VolINS / T_INS;
+      omega_m = -q_INS / (A_e * r_2 * kPOL);
+    }
+    if (x_e <= 0) {
+      omega_m = 0;
+      /* verify if a forced expiration is programed */
+      if (T_EXPF > 0 && VolEXPF > 0)
+        phase_next();
+      else
+        phase_set(0 /* reset position */);
+    }
+  }
+  return ++phase_i;
+}
+
+int phase_forced_expiration(int phase_i) {
+  if (phase_i < VALVE_OFF_INT) {
+    V1 = V2 = V3 = V5 = V6 = 0;
+    omega_m = 0;
+  }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    V4 = 1;
+  }
+  else {
+    if (phase_i == VALVE_OFF_INT + VALVE_ON_INT) {
+      /* must synchronize the reading of VolEXP and T_EXPF with other thread */
+      x_EXPF = VolEXPF / A_e;
+      q_EXPF = VolEXPF / T_EXPF;
+      omega_m = q_EXPF / (A_e * r_2 * kPOL);
+    }
+    if (x_e >= x_EXPF) {
+      omega_m = 0;
+      phase_next();
+    }
+  }
+  return ++phase_i;
 }
 
 void print_status(void) {
-  struct timespec ta;
-  double t1;
-  clock_gettime(CLOCK_REALTIME, &ta);
-  t1 = (ta.tv_sec - t0.tv_sec) + (ta.tv_nsec - t0.tv_nsec) * 1e-9;
+  /* struct timespec ta; */
+  /* double t1; */
+  /* clock_gettime(CLOCK_REALTIME, &ta); */
+  /* t1 = (ta.tv_sec - t0.tv_sec) + (ta.tv_nsec - t0.tv_nsec) * 1e-9; */
   /* printf("%08.3f %1d  %1d  %1d  %1d  %1d  %1d  %1d  %07d %07.1f %07.3f\n", t1, phase, V1, V2, V3, V4, V5, V6, expn_i, omega_m, x_e); */
 }
 
@@ -284,9 +321,9 @@ static void interrupt_1ms(int delta_t) {
 }
 
 void * interval_code(int *max_counter) {
-  int c = *max_counter;
-  struct timespec tr, last_tp, tp, last_ti, ti;
-  uint32_t delta_t, delta_ti;
+  /* int c = *max_counter; */
+  struct timespec tr, last_tp, tp, last_ti;
+  uint32_t delta_t;
   int32_t uk = INTERVAL, delta_uk;
   
   clock_getres(CLOCK_REALTIME, &tr);
@@ -314,15 +351,16 @@ void * interval_code(int *max_counter) {
     interrupt_1ms(delta_t);
 
     /* some log */
-    if (--c == 0) {
-      c = *max_counter;
-      clock_gettime(CLOCK_REALTIME, &ti);
-      delta_ti = ((ti.tv_sec - last_ti.tv_sec) * 1000000000 + ti.tv_nsec - last_ti.tv_nsec) / 1000;
-      last_ti.tv_sec = ti.tv_sec;
-      last_ti.tv_nsec = ti.tv_nsec;
+    /* if (--c == 0) { */
+    /* unit32_t delta_ti, ti; */
+    /*   c = *max_counter; */
+    /*   clock_gettime(CLOCK_REALTIME, &ti); */
+    /*   delta_ti = ((ti.tv_sec - last_ti.tv_sec) * 1000000000 + ti.tv_nsec - last_ti.tv_nsec) / 1000; */
+    /*   last_ti.tv_sec = ti.tv_sec; */
+    /*   last_ti.tv_nsec = ti.tv_nsec; */
       
       //      printf("Tick 1s: uk=%d delta_uk=%d ti = %ld.%09ld last_ti = %ld.%09ld delta_ti=%dus\n", uk, delta_uk, ti.tv_sec, ti.tv_nsec, last_ti.tv_sec, ti.tv_nsec, delta_ti);
-    }
+    /* } */
   }
   return NULL;
 }

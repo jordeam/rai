@@ -203,7 +203,7 @@ dissolvido</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="Tempo_exp_forçada">
+                              <object class="GtkEntry" id="Tempo_exp_forcada">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                               </object>

@@ -48,10 +48,6 @@ Se você tem interesse em participar desse projeto, envie-nos uma mensagem para 
 * Prof. Dr. Maximiliam Luppe (EESC/USP)
 * Alessandro Rodrigo Locatti (EESC/USP)
 
-=== Página Web e Divulgação
-
-* Alexander Munaiar (EESC/USP)
-
 === Controle, Motores e Acionamentos Elétricos
 
 * Prof. Dr. Carlos Matheus Rodrigues de Oliveira (UTFPR)

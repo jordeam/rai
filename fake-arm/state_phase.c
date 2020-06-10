@@ -29,20 +29,20 @@ int phase_get(void) {
 
 void phase_exec(void) {
   if (phase_new) {
+    /* resets phase counter, so it knows when changing to a new phase */
+    phase_i = 0;
     /* calls phase log */
     if (phase_log)
       phase_log();
     phase_new = 0;
   }
-  phase_table[phase](phase_i);
+  phase_i = phase_table[phase](phase_i);
   /* do state equation functions */
   if (state_eqns)
     state_eqns();
 }
 
 void phase_set(int next_phase) {
-  /* resets phase counter, so it knows when changing to a new phase */
-  phase_i = 0;
   if (phase_last != phase)
     phase_new = 1;
   phase_last = phase;
@@ -51,17 +51,11 @@ void phase_set(int next_phase) {
 }
 
 void phase_next(void) {
-  /* resets phase counter, so it knows when changing to a new phase */
-  phase_i = 0;
   phase_new = 1;
   /* save last phase number */
   phase_last = phase;
   phase++;
   if (phase >= number_phases) phase = 0;
-}
-
-void phase_i_inc(void) {
-  phase_i++;
 }
 
 void phase_init(int initial_phase, void (*phase_log_fcn)(void), int number_of_phases, phase_fcn *ext_phase_table, void (*phase_state_eqns)(void)) {
