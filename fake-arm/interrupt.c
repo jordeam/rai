@@ -32,9 +32,9 @@
 
 /* Machanic transmission parameters */
 /* Motor pulley radius */
-#define r_1 (15e-3 / 2) 
+#define r_1 (10e-3 / 2) 
 /* pulley larger radius */
-#define r_2 (150e-3 / 2)
+#define r_2 (300e-3 / 2)
 /* pulley smaller radius, in contact with rack */
 #define r_3 (15e-3 / 2)
 
@@ -54,13 +54,13 @@
 #define m_e 0.37
 
 /* inertia momentum of pulley */
-#define J_2 1e-3
+#define J_2 100e-6
 
 /* inertia momentum of motor pulley */
-#define J_1 100e-6
+#define J_1 10e-6
 
 /* inertia momentum of motor rotor */
-#define J_m 200e-6
+#define J_m 20e-6
 
 /* equivalent angular friction */
 #define B_eq (b_e*(r_1 * r_3) / r_2 + B_2 * sqr(r_1/r_2) + B_1 + B_m)
@@ -99,8 +99,7 @@ float x_e = r_3 * (r_1 / r_2) * INIT_ANG;
 
 /* Control parameters */
 float k_p = 1;
-#define TelMax 0.2
-#define TelMin -0.2
+#define TelMAX 1
 
 /* relative pressure inside cylinder in Pa */
 float P_e = 0;
@@ -317,8 +316,9 @@ void state_equations(void) {
   dt = 1e-3;
 
   /* controller */
+  omega_ref = saturate(omega_ref, OMEGA_MAX, -OMEGA_MAX);
   Tel = k_p * (omega_ref - omega_m);
-  Tel = saturate (Tel, TelMax, TelMin);
+  Tel = saturate(Tel, TelMAX, -TelMAX);
   
   /* state equations */
   d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel - (r_1 * r_3) / (J_eq * r_2 * A_e) * P_e;
@@ -342,7 +342,7 @@ void state_equations(void) {
     data_log[lpos].v6 = V6;
     data_log[lpos].x_e = x_e;
     data_log[lpos].omega_m = omega_m;
-    data_log[lops].Tel = Tel;
+    data_log[lpos].Tel = Tel;
     lpos++;
     if (lpos >= NUMLOGS) 
       lpos = 0;
