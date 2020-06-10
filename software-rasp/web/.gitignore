@@ -1,6 +1,5 @@
 instance
 
-venv/
 .idea
 
 *.pyc
