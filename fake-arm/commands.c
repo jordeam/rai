@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "interpreter.h"
-#include "parameters.h"
+#include "oper_parameters.h"
 #include "commands.h"
 
 extern float VolINS;
@@ -20,9 +20,9 @@ int FIO2_post(char *cmd, char *data) {
   return 0;
 }
 
-extern float T_INS;
+extern float t_INS;
 int insp_time_post(char *cmd, char *data) {
-  T_INS = vent_params.insp_time * 1e-3;
+  t_INS = vent_params.insp_time * 1e-3;
   return 0;
 }
 
@@ -32,15 +32,15 @@ int vexp_post(char *cmd, char *data) {
   return 0;
 }
 
-extern float T_EXPF;
+extern float t_EXPF;
 int texpf_post(char *cmd, char *data) {
-  T_EXPF = vent_params.texpf * 1e-3;
+  t_EXPF = vent_params.texpf * 1e-3;
   return 0;
 }
 
-extern float T_EXPN;
+extern float t_EXPN;
 int texpn_post(char *cmd, char *data) {
-  T_EXPN = vent_params.texpn * 1e-3;
+  t_EXPN = vent_params.texpn * 1e-3;
   return 0;
 }
 

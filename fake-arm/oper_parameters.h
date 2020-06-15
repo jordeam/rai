@@ -39,6 +39,6 @@ extern infusionpump_parameters_t infpump_params[4];
 
 extern const void * baseaddr_params[];
 
-void init_parameters(void);
+void oper_parameters_init(void);
 
 #endif
