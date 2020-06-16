@@ -48,8 +48,13 @@
 /* equivalent inercia momentum */
 #define J_eq (m_e * (r_1 * r_3) / r_2 + J_2 * sqr(r_1/r_2) + J_1 + J_m)
 
-/* constants */
+/* piston internal diameter */
 #define Demb 69e-3
+
+/* piston transversal internal  area  */
 #define A_e (M_PI * Demb * Demb / 4)
+
+/* input pressure for O2 in Pa */
+#define rho_O2 200e3
 
 #endif

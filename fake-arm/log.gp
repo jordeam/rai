@@ -28,8 +28,10 @@ plot fn u 1:($2/4 + phase0) with points title 'phase', \
      fn u 1:($8*.25 + V60) w lines notitle, \
      fn u 1:($9*20 + xe0) w lines title 'x_{ref}', \
      fn u 1:($10*20 + xe0) w lines title 'x_e', \
-     fn u 1:($11*0.01 + omega0) w lines notitle, \
-     fn u 1:($12*0.01 + omega0) w lines title 'omega_{ref}', \
-     fn u 1:($13 + Tel0) w lines notitle, \
-     fn u 1:($14*1e-5 + rho0) w lines notitle, \
-     fn u 1:($15*1e-2 + P0) w lines notitle
+     fn u 1:($11*20 + xe0) w lines title 'encoder', \
+     fn u 1:($12*0.01 + omega0) w lines title 'omega_m', \
+     fn u 1:($13*0.01 + omega0) w lines title 'omega_{ref}', \
+     fn u 1:($14*0.01 + omega0) w lines title 'omega_e', \
+     fn u 1:($15 + Tel0) w lines notitle, \
+     fn u 1:($16*1e-5 + rho0) w lines notitle, \
+     fn u 1:($17*1e-2 + P0) w lines notitle

@@ -2,84 +2,64 @@
 
 #include "circbuf.h"
 
-/* index for data_log */
-static int lpos;
-
-/* back position for data log */
-static int blpos;
-int numlogs;
-
 /* 
    It increments write index and returns buffer's size
 */
-int circbuf_write_inc(void) {
-  lpos++;
-  if (lpos >= numlogs) 
-    lpos = 0;
-  if (blpos < 0)
-    blpos = 0;
+int circbufrw_inc_wi(circbufrw_t * self) {
+  self->wi++;
+  if (self->wi >= self->n) 
+    self->wi = 0;
   /* if buffer is full, incs read index */
-  if (lpos == blpos) {
-    blpos++;
-    if (blpos >= numlogs)
-      blpos = 0;
-    /* return lost a data */
-    return numlogs;
+  if (self->wi == self->ri) {
+    self->ri++;
+    if (self->ri >= self->n)
+      self->ri = 0;
+    return self->n;
   }
   else
     /* no data loss */
-    return 0;
-}
-
-int circbuf_get_write_index(void) {
-  return lpos;
-}
-
-int circbuf_get_read_index() {
-  return blpos;
+    return circbufrw_get_size(self);
 }
 
 /* 
    Increment buffer read index and returns buffer's size.
 */
-int circbuf_read_inc(void) {
-  if (blpos == lpos)
+int circbufrw_inc_ri(circbufrw_t * self) {
+  if (self->ri == self->wi)
     /* log is empty in the beginning */
     return 0;
   else {
-    blpos++;
-    if (blpos >= numlogs)
-      blpos = 0;
-    if (blpos > lpos)
-      return lpos + numlogs - blpos;
-    else
-      return lpos - blpos;
+    self->ri++;
+    if (self->ri >= self->n)
+      self->ri = 0;
+    return circbufrw_get_size(self);
   }
 }
 
 /* 
    Increment buffer read index by n and returns buffer's size.
 */
-int circbuf_read_inc_n(int n) {
-  if (n < circbuf_get_buf_size()) {
-    blpos += n;
-    if (blpos >= numlogs)
-      blpos -= numlogs;
+int circbufrw_inc_ri_n(circbufrw_t * self, int n) {
+  if (n < self->n) {
+    self->ri += n;
+    if (self->ri >= self->n)
+      self->ri -= self->n;
   }
   else
-    blpos = lpos;
-  return circbuf_get_buf_size();
+    self->ri = self->wi;
+  return circbufrw_get_size(self);
 }
 
-int circbuf_get_buf_size(void) {
-  if (blpos > lpos)
-    return lpos + numlogs - blpos;
+/* return the number of elements stored in buffer */
+int circbufrw_get_size(circbufrw_t * self) {
+  if (self->ri > self->wi)
+    return self->wi + self->n - self->ri;
   else
-    return lpos - blpos;
+    return self->wi - self->ri;
 }
 
-void circbuf_init(int NumLogs) {
-  numlogs = NumLogs;
-  lpos = 0;
-  blpos = 0;
+void circbufrw_init(circbufrw_t * self, int NumLogs) {
+  self->n = NumLogs;
+  self->wi = 0;
+  self->ri = 0;
 }

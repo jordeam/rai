@@ -1,12 +1,21 @@
 #ifndef _data_log_h
 #define _data_log_h
 
-int circbuf_get_read_index(void);
-int circbuf_get_write_index(void);
-int circbuf_read_inc(void);
-int circbuf_read_inc_n(int n);
-int circbuf_write_inc(void);
-int circbuf_get_buf_size(void);
-void circbuf_init(int NumLogs);
+struct circbufrw {
+  /* index for write, write and increment */
+  int wi;
+  /* back position: index for read, read and increment */
+  int ri;
+  /* maximum number of elements */
+  int n;
+};
+
+typedef struct circbufrw circbufrw_t;
+
+int circbufrw_inc_ri(circbufrw_t * self);
+int circbufrw_inc_ri_n(circbufrw_t * self, int n);
+int circbufrw_inc_wi(circbufrw_t * self);
+int circbufrw_get_size(circbufrw_t * self);
+void circbufrw_init(circbufrw_t * self, int NumLogs);
 
 #endif

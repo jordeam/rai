@@ -15,8 +15,9 @@
 #include "sttmach.h"
 #include "circbuf.h"
 #include "plant_parameters.h"
+#include "encoder.h"
 
-#define INIT_ANG 40
+#define INIT_ANG 200
 
 #define WRITE_DATA_INTERVAL 0.5
 
@@ -24,25 +25,23 @@
 /* Number of log lines */
 #define NUMLOGS 2000
 
-/* Number of iteractions to write a line of log */
-#define TIMES2LOG 10
+circbufrw_t datalog;
 
 struct log_block {
   double t;
   uint8_t phase, v1, v2, v3, v4, v5, v6;
-  float x_ref, x_e, omega_m, omega_ref, Tel, rho_e, P_m;
+  float x_ref, x_e, x_enc;
+  float omega_m, omega_ref, omega_e, Tel, rho_e, P_m;
 };
 
 typedef struct log_block log_block_t;
 
+/* block of logs */
+log_block_t data_log[NUMLOGS];
+
 /* syncing gnuplot */
 volatile sem_t sem;
 static volatile double gnuplot_t;
-#define handle_error(msg) \
-           do { perror(msg); exit(EXIT_FAILURE); } while (0)
-
-/* block of logs */
-log_block_t data_log[NUMLOGS];
 
 /* Pipes */
 int fd1[2];  // Used to store two ends of first pipe 
@@ -52,13 +51,13 @@ int fd2[2];  // Used to store two ends of second pipe
  *  State variables
  */
 /* motor angular speed */
-double omega_m = 0;
+static double omega_m = 0;
 /* motor angular position */
-double theta_m = INIT_ANG;
+static double theta_m = INIT_ANG;
 /* piston position */
-double x_e = r_3 * (r_1 / r_2) * INIT_ANG;
+static double x_e = r_3 * (r_1 / r_2) * INIT_ANG;
 /* relative pressure inside cylinder in Pa */
-double rho_e = 0;
+static double rho_e = 0;
 
 /*
  * Static parameters
@@ -68,7 +67,7 @@ double rho_e = 0;
 /* positive force N */
 #define Fpos 1e-3
 /* Force at -1mm */
-#define Fneg 10
+#define Fneg 4
 /* position for 100 N */
 #define xneg -2e-3
 static double F_a, k_a = log(Fpos / (Fneg + 1)) / xneg;
@@ -91,16 +90,16 @@ static double Tel;
 
 /* using external, be carefull */
 extern int V1, V2, V3, V4, V5, V6;
-extern float x_ref;
-extern int numlogs;
+
+/* using external to log */
+extern float x_ref, x_enc;
 extern float omega_ref;
+extern float omega_e;
+extern sttmach_t phases;
 
 /*
  * Variables
  */
-
-/* input pressure for O2 in Pa */
-float rho_O2 = 200e3;
 
 /* Average mechanical power of motor axis */
 static double P_m;
@@ -126,11 +125,15 @@ float get_x_e(void) {
 void write_data(void * data) {
   double t = *((double *) data);
   FILE *f = fopen("log1.dat", "w");
-  int lpos = circbuf_get_write_index();
-  int i = circbuf_get_read_index(), count;
+  int lpos = datalog.wi;
+  int i = datalog.ri, count;
   /* printf("Writing data t = %f lpos=%d blpos=%d numlogs=%d\n", t, lpos, i, numlogs); */
   for (count = 0; i != lpos; count++)  {
-    fprintf (f, "%f %d %d %d %d %d %d %d %f %f %f %f %f %f %f\n", (float) data_log[i].t, data_log[i].phase, data_log[i].v1, data_log[i].v2, data_log[i].v3, data_log[i].v4, data_log[i].v5, data_log[i].v6, data_log[i].x_ref, data_log[i].x_e, data_log[i].omega_m, data_log[i].omega_ref, data_log[i].Tel, data_log[i].rho_e, data_log[i].P_m);
+    fprintf (f, "%f %d %d %d %d %d %d %d %f %f %f %f %f %f %f %f %f\n",
+             (float) data_log[i].t, data_log[i].phase, data_log[i].v1, data_log[i].v2, data_log[i].v3, data_log[i].v4, data_log[i].v5, data_log[i].v6,
+             data_log[i].x_ref, data_log[i].x_e, data_log[i].x_enc,
+             data_log[i].omega_m, data_log[i].omega_ref, data_log[i].omega_e,
+             data_log[i].Tel, data_log[i].rho_e, data_log[i].P_m);
     i++;
     if (i >= NUMLOGS)
       i = 0;
@@ -146,7 +149,6 @@ void state_equations(void * ignore) {
   struct timespec ta, t_0;
   double t, dt, t_old, t_log, t_write = 0;
   double d_omega_m, d_theta_m, d_rho_e;
-  
   clock_gettime(CLOCK_REALTIME, &t_0);
   t_old = 0;
   t_log = -1;
@@ -167,7 +169,7 @@ void state_equations(void * ignore) {
     d_theta_m = omega_m;
     if (V2)
       d_rho_e = (-rho_e + rho_O2) / tau_rho_O2;
-    else if (V1 || V3 || V5 || (V4 && V6))
+    else if (V1 || V3 || V5 || V4)
       d_rho_e = -rho_e / tau_rho_O2;
     else {
       float d_x_e = d_theta_m * r_3 * kPOL;
@@ -183,14 +185,15 @@ void state_equations(void * ignore) {
     theta_m += d_theta_m * dt;
     rho_e += d_rho_e * dt;
     x_e = theta_m * r_3 * kPOL;
+    encoder_eval(theta_m);
     /* Logger */
     /* log data each 5 ms */
   
     if (t_log < 0 || t - t_log >=  5e-3) {
-      int lpos = circbuf_get_write_index();
+      int lpos = datalog.wi;
       t_log = t;
       data_log[lpos].t = t;
-      data_log[lpos].phase = sttmach_get_cur_state();
+      data_log[lpos].phase = sttmach_get_cur_state(&phases);
       data_log[lpos].v1 = V1;
       data_log[lpos].v2 = V2;
       data_log[lpos].v3 = V3;
@@ -198,13 +201,15 @@ void state_equations(void * ignore) {
       data_log[lpos].v5 = V5;
       data_log[lpos].v6 = V6;
       data_log[lpos].x_e = x_e;
+      data_log[lpos].x_enc = x_enc;
       data_log[lpos].omega_m = omega_m;
       data_log[lpos].omega_ref = omega_ref;
+      data_log[lpos].omega_e = omega_e;
       data_log[lpos].x_ref = x_ref;
       data_log[lpos].Tel = Tel;
       data_log[lpos].rho_e = rho_e;
       data_log[lpos].P_m = P_m;
-      circbuf_write_inc();
+      circbufrw_inc_wi(&datalog);
       if (t - t_write >= WRITE_DATA_INTERVAL) {
         /* time to write data to file */
         /* create thread to write data in file */
@@ -254,9 +259,10 @@ void * gnuplot_init(void) {
       perror("gnuplot_init: execv");
       exit(errno);
     }
+    /* will never get here */
+    return NULL;
   }
-  /* else { */
-
+  /* else  */
   /* in the parent */
   close(p1[READ_END]);
   close(p2[WRITE_END]);
@@ -277,9 +283,11 @@ void * gnuplot_init(void) {
 void state_equations_init(void) {
   /* to synchronize gnuplot */
   if (sem_init(&sem, 0, 0) == -1)
-    handle_error("sem_init");
+    perror("sem_init");
   /* data logger buffer */
-  circbuf_init(NUMLOGS);
+  circbufrw_init(&datalog, NUMLOGS);
+  /* encoder emulation */
+  encoder_init(theta_m);
   /* a new thread to control gnuplot */
   pthread_t trd;
   pthread_create(&trd, NULL, (void*) gnuplot_init, NULL);
