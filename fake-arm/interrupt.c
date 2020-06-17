@@ -22,6 +22,8 @@
 
 /* motor maximun speed rad/s */
 #define OMEGA_MAX 314
+/* minimum speed to be considered stopped */
+#define OMEGA_E_MIN 3
 
 /* valve macro for debug only */
 #define VSTAT(x) ((x) ? "ON " : "OFF")
@@ -48,7 +50,7 @@ float x_T, q_INS, q_EXPF;
 /*
  * Control parameters and variables
  */
-float k_p = 1;
+float k_p = 0.2;
 #define TelMAX 1.0
 float omega_ref = 0, omega_max = 0, x_ref = 0;
 /* speed measured by encoder */
@@ -57,6 +59,10 @@ float Tel = 0;
 
 /* Encoder speed constant */
 #define k_es ((2 * M_PI) / (INTERVAL * 1e-6 * ENCODER_PULSES))
+
+enum control_mode {control_speed, control_position};
+
+enum control_mode control_mode = control_speed;
 
 sttmach_t phases;
 
@@ -73,12 +79,46 @@ static int32_t encoder;
 /* phases' flags */
 static int phase_eval_vars = 0;
 
+/* First use of cylinder, go to position 0 and resets encoder */
+void * phase_calib(int phase_i) {
+  static int count = 0;
+  control_mode = control_speed;
+  if (phase_i == -1)
+    /* return phase number */
+    return (void *) 5;
+  if (phase_i == 0)
+    omega_max = 0;
+  if (phase_i < VALVE_OFF_INT) {
+    /* 5ms for valves get closed? */
+    /* Valves */
+    V1 = V2 = V3 = V4 = 0;
+    omega_max = 0;
+  }
+  else if (phase_i < VALVE_OFF_INT + VALVE_ON_INT) {
+    /* more 5ms to valves open? */
+    V5 = V6 = 1;
+    omega_max = 0;
+    /* reset expn_i counter to timerize natural expiration */
+    expn_i = 0;
+  }
+  else {
+    omega_max = -0.2 * OMEGA_MAX;
+    if ((fabsf(omega_e) < OMEGA_E_MIN || omega_e > 0) && ++count > 200) {
+      /* reset encoder */
+      encoder_set(0);
+      return phase_reset;
+    }
+  }
+  return phase_calib;
+}
+
 void * phase_reset(int phase_i) {
   static int timer_x0;
+  control_mode = control_position;
   if (phase_i == -1)
     /* return phase number */
     return (void *) 0;
-  x_ref = -10e-3;
+  x_ref = -2e-3;
   if (phase_i == 0)
     timer_x0 = 0;
   if (phase_i < VALVE_OFF_INT) {
@@ -94,21 +134,17 @@ void * phase_reset(int phase_i) {
     /* reset expn_i counter to timerize natural expiration */
     expn_i = 0;
   }
-  else if (x_con <= x_ref) {
-    if (timer_x0++ > 20) {
-      timer_x0 = 0;
-      x_ref -= 10e-3;
-      if (omega_e > 0) {
-        omega_max = 0;
-        /* resets encoder */
-        encoder_set(0);
-        if (ventilator_run) {
-          if (FIO2 <= 0.22)
-            return phase_air;
-          else
-            /* go to next state */
-            return phase_O2;
-        }
+  else if (timer_x0++ > 20) {
+    if (omega_e >= 0) {
+      omega_max = 0;
+      /* resets encoder */
+      encoder_set(0);
+      if (ventilator_run) {
+        if (FIO2 <= 0.22)
+          return phase_air;
+        else
+          /* go to next state */
+          return phase_O2;
       }
     }
     else {
@@ -192,12 +228,15 @@ void * phase_air(int phase_i) {
 }
 
 void * phase_inspiration(int phase_i) {
+  static int count = 0;
   if (phase_i == -1)
     /* return phase number */
     return (void *) 3;
   // if (phase_i < 20) printf("phase_i=%d\n", phase_i);
-  if (phase_i == 0)
+  if (phase_i == 0) {
+    count = 0;
     phase_eval_vars = 1;
+  }
   if (phase_i < VALVE_OFF_INT) {
     V1 = V2 = V4 = V5 = V6 = 0;
     omega_max = 0;
@@ -212,7 +251,7 @@ void * phase_inspiration(int phase_i) {
       omega_max = -q_INS / (A_e * r_3 * kPOL);
       x_ref = 0;
     }
-    if (x_con <= 0) {
+    if (x_con <= 0 || (omega_e > 0 && count > t_INS * (1.0 / (2 * INTERVAL *1e-6)))) {
       omega_max = 0;
       /* verify if a forced expiration is programed */
       if (t_EXPF > 0 && VolEXPF > 0)
@@ -221,6 +260,7 @@ void * phase_inspiration(int phase_i) {
         return phase_reset /* reset position */;
     }
   }
+  count++;
   return phase_inspiration;
 }
 
@@ -257,7 +297,14 @@ void * phase_forced_expiration(int phase_i) {
 /* controller */
 void control_fcn(float x, float omega) {
   /* position control loop */
-  omega_ref = sign(x_ref - x) * (r_2 / (r_3 * r_1)) * sqrt(2 * TelMAX * fabsf(x_ref - x));
+  switch (control_mode) {
+  case control_position:
+    omega_ref = sign(x_ref - x) * (r_2 / (r_3 * r_1)) * sqrt(2 * TelMAX * fabsf(x_ref - x));
+    break;
+  case control_speed:
+    omega_ref = omega_max;
+  }
+
   /* saturate omega */
   if ((omega_max > 0 && omega_ref > omega_max) || (omega_max < 0 && omega_ref < omega_max))
     omega_ref = omega_max;
@@ -323,7 +370,7 @@ void interrupt_init(void) {
   /* print_status header */
   printf("# init_interrupt\n");
   state_equations_init();
-  sttmach_init(&phases, phase_reset);
+  sttmach_init(&phases, phase_calib);
 
   pthread_t trd;
   int inter_data = INTERVAL;

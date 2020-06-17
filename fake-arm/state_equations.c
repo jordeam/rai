@@ -17,7 +17,7 @@
 #include "plant_parameters.h"
 #include "encoder.h"
 
-#define INIT_ANG 200
+#define INIT_ANG 40
 
 #define WRITE_DATA_INTERVAL 0.5
 
@@ -67,7 +67,7 @@ static double rho_e = 0;
 /* positive force N */
 #define Fpos 1e-3
 /* Force at -1mm */
-#define Fneg 4
+#define Fneg 40
 /* position for 100 N */
 #define xneg -2e-3
 static double F_a, k_a = log(Fpos / (Fneg + 1)) / xneg;
@@ -157,7 +157,7 @@ void state_equations(void * ignore) {
     clock_gettime(CLOCK_REALTIME, &ta);
     t = ta.tv_sec - t_0.tv_sec + (ta.tv_nsec - t_0.tv_nsec) * 1e-9;
     dt = t - t_old;
-
+    /* if (t > 5) exit(0); */
     /* End of piston 100 N at -2mm */
     F_a = Fpos * (exp(-x_e * k_a) - 1);
 
@@ -166,6 +166,10 @@ void state_equations(void * ignore) {
   
     /* state equations */
     d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_1 * r_3) / (J_eq * r_2)) * F_a + ((r_1 * r_3 * A_e) / (J_eq * r_2)) * rho_e;
+    if (x_e < 0 && d_omega_m > 0) {
+      d_omega_m *= 0.1;
+      x_e = 0;
+    }
     d_theta_m = omega_m;
     if (V2)
       d_rho_e = (-rho_e + rho_O2) / tau_rho_O2;
@@ -266,8 +270,8 @@ void * gnuplot_init(void) {
   /* in the parent */
   close(p1[READ_END]);
   close(p2[WRITE_END]);
-  FILE * f = fdopen(p1[WRITE_END], "w");
   sleep(1);
+  FILE * f = fdopen(p1[WRITE_END], "w");
   fprintf(f, "set term qt size 1600,500\nload 'log.gp'\n");
   fflush(f);
   printf("INFO: gnuplot_init: sent plot to gnuplot\n");
