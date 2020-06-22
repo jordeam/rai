@@ -64,13 +64,11 @@ static double rho_e = 0;
  */
 
 /* piston end of course constants */
-/* positive force N */
-#define Fpos 1e-3
-/* Force at -1mm */
-#define Fneg 40
-/* position for 100 N */
+/* position for F_a_MAX */
 #define xneg -2e-3
-static double F_a, k_a = log(Fpos / (Fneg + 1)) / xneg;
+static double F_a;
+/* maximum value at xneg */
+#define F_a_MAX 2000
 
 /* time constant for O2 valve open */
 #define tau_rho_O2 0.02
@@ -159,17 +157,14 @@ void state_equations(void * ignore) {
     dt = t - t_old;
     /* if (t > 5) exit(0); */
     /* End of piston 100 N at -2mm */
-    F_a = Fpos * (exp(-x_e * k_a) - 1);
-
+    F_a = (F_a_MAX / xneg) * x_e;
+    F_a = saturate(F_a, F_a_MAX, 0);
+    
     /* measuring motor mechanical power */
     P_m = (1 - k) * P_m + k * omega_m * Tel;
   
     /* state equations */
     d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_1 * r_3) / (J_eq * r_2)) * F_a + ((r_1 * r_3 * A_e) / (J_eq * r_2)) * rho_e;
-    if (x_e < 0 && d_omega_m > 0) {
-      d_omega_m *= 0.1;
-      x_e = 0;
-    }
     d_theta_m = omega_m;
     if (V2)
       d_rho_e = (-rho_e + rho_O2) / tau_rho_O2;
@@ -197,7 +192,7 @@ void state_equations(void * ignore) {
       int lpos = datalog.wi;
       t_log = t;
       data_log[lpos].t = t;
-      data_log[lpos].phase = sttmach_get_cur_state(&phases);
+      data_log[lpos].phase = phases.id;
       data_log[lpos].v1 = V1;
       data_log[lpos].v2 = V2;
       data_log[lpos].v3 = V3;
