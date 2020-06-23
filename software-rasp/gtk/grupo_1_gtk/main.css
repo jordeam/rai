@@ -1,0 +1,22 @@
+button{
+	background-image: none;
+	background-color:#008B8B; 
+	color: #FFFFFF;
+}
+
+label{
+  color: white;
+}
+
+window{
+    background-color: #535353;
+}
+
+entry:focus{
+	background-image: none;
+	background-color: #DDDD88;	
+}
+
+entrar{
+	color: green;
+}
