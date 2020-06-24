@@ -409,7 +409,7 @@ dissolvido</property>
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Tempo de expiração natural:</property>
+                                <property name="label" translatable="yes">Modo de operação:</property>
                               </object>
                               <packing>
                                 <property name="left_attach">4</property>
@@ -417,7 +417,7 @@ dissolvido</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkEntry" id="time_exp">
+                              <object class="GtkComboBoxText" id="modo_op">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <property name="active">0</property>
