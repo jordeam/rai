@@ -1,6 +1,10 @@
 # Como testar 
 
-No terminal do linux digite os seguintes comandos:
+Se não tiver o flask:
+
+$ pip3 install flask
+
+No terminal, pasta web, do linux digite os seguintes comandos:
 * $ export FLASK_APP=raisite
 * $ export FLASK_ENV=development
 * $ python3 -m flask init-db (para iniciar um banco de dados vazio)
