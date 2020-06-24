@@ -73,9 +73,6 @@ static double F_a;
 /* time constant for O2 valve open */
 #define tau_rho_O2 0.02
 
-/* air pressure in Pa */
-float rho_air = 101000;
-
 /* filter constant */
 #define k 0.05
 
@@ -117,6 +114,10 @@ float get_x_e(void) {
   return x_e;
 }
 
+float get_rho_e(void) {
+  return (float) rho_e;
+}
+
 /*
  * Logging
  */
@@ -155,7 +156,7 @@ void state_equations(void * ignore) {
     clock_gettime(CLOCK_REALTIME, &ta);
     t = ta.tv_sec - t_0.tv_sec + (ta.tv_nsec - t_0.tv_nsec) * 1e-9;
     dt = t - t_old;
-    /* if (t > 5) exit(0); */
+    if (t > 15) exit(0);
     /* End of piston 100 N at -2mm */
     F_a = (F_a_MAX / xneg) * x_e;
     F_a = saturate(F_a, F_a_MAX, 0);

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#define ENCODER_PULSES 360
+#define ENCODER_PULSES 600
 
 int32_t encoder_get(void);
 void encoder_set(int32_t newvalue);

@@ -57,4 +57,7 @@
 /* input pressure for O2 in Pa */
 #define rho_O2 200e3
 
+/* air pressure in Pa */
+#define rho_air 101000
+
 #endif
