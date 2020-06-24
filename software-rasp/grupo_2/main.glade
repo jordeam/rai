@@ -122,7 +122,7 @@ dissolvido</property>
                     <property name="can_focus">False</property>
                     <property name="margin_left">10</property>
                     <property name="margin_right">10</property>
-                    <property name="left_padding">12</property>
+                    <property name="left_padding">23</property>
                     <child>
                       <object class="GtkBox">
                         <property name="visible">True</property>
@@ -132,6 +132,9 @@ dissolvido</property>
                           <object class="GtkGrid">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="margin_left">40</property>
+                            <property name="margin_top">5</property>
+                            <property name="margin_bottom">5</property>
                             <child>
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
@@ -151,27 +154,6 @@ dissolvido</property>
                               <packing>
                                 <property name="left_attach">5</property>
                                 <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkEntry" id="press_max_exp">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">5</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Pressão máxima de expiração forçada (atm):</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">4</property>
-                                <property name="top_attach">1</property>
                               </packing>
                             </child>
                             <child>
@@ -253,18 +235,6 @@ dissolvido</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="press_max_exp_minus">
-                                <property name="label" translatable="yes">-</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">6</property>
-                                <property name="top_attach">1</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkButton" id="frac_02_plus">
                                 <property name="label" translatable="yes">+</property>
                                 <property name="visible">True</property>
@@ -298,18 +268,6 @@ dissolvido</property>
                               <packing>
                                 <property name="left_attach">7</property>
                                 <property name="top_attach">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="press_max_exp_plus">
-                                <property name="label" translatable="yes">+</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">7</property>
-                                <property name="top_attach">1</property>
                               </packing>
                             </child>
                             <child>
@@ -480,51 +438,6 @@ dissolvido</property>
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Rise  Time</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">4</property>
-                                <property name="top_attach">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkEntry" id="rise_time">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">5</property>
-                                <property name="top_attach">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="rise_time_minus">
-                                <property name="label" translatable="yes">-</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">6</property>
-                                <property name="top_attach">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkButton" id="rise_time_plus">
-                                <property name="label" translatable="yes">+</property>
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">7</property>
-                                <property name="top_attach">2</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Pressão Controlada</property>
                               </object>
                               <packing>
@@ -570,11 +483,56 @@ dissolvido</property>
                               <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="label" translatable="yes">Rise  Time</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">4</property>
+                                <property name="top_attach">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="rise_time">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">5</property>
+                                <property name="top_attach">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="rise_time_minus">
+                                <property name="label" translatable="yes">-</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">6</property>
+                                <property name="top_attach">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="rise_time_plus">
+                                <property name="label" translatable="yes">+</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">7</property>
+                                <property name="top_attach">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
                                 <property name="label" translatable="yes">Pressão de Suporte</property>
                               </object>
                               <packing>
-                                <property name="left_attach">0</property>
-                                <property name="top_attach">5</property>
+                                <property name="left_attach">4</property>
+                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                             <child>
@@ -583,8 +541,8 @@ dissolvido</property>
                                 <property name="can_focus">True</property>
                               </object>
                               <packing>
-                                <property name="left_attach">1</property>
-                                <property name="top_attach">5</property>
+                                <property name="left_attach">5</property>
+                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                             <child>
@@ -595,8 +553,8 @@ dissolvido</property>
                                 <property name="receives_default">True</property>
                               </object>
                               <packing>
-                                <property name="left_attach">2</property>
-                                <property name="top_attach">5</property>
+                                <property name="left_attach">6</property>
+                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                             <child>
@@ -607,19 +565,8 @@ dissolvido</property>
                                 <property name="receives_default">True</property>
                               </object>
                               <packing>
-                                <property name="left_attach">3</property>
-                                <property name="top_attach">5</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                              </object>
-                              <packing>
-                                <property name="left_attach">4</property>
-                                <property name="top_attach">5</property>
-                                <property name="width">4</property>
+                                <property name="left_attach">7</property>
+                                <property name="top_attach">2</property>
                               </packing>
                             </child>
                           </object>
@@ -633,8 +580,11 @@ dissolvido</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="halign">center</property>
+                            <property name="valign">start</property>
                             <property name="margin_top">10</property>
                             <property name="margin_bottom">10</property>
+                            <property name="spacing">280</property>
                             <property name="homogeneous">True</property>
                             <child>
                               <object class="GtkButton" id="Button_para_resp">
@@ -814,7 +764,7 @@ dissolvido</property>
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="row_spacing">8</property>
-                            <property name="column_spacing">130</property>
+                            <property name="column_spacing">110</property>
                             <child>
                               <object class="GtkBox">
                                 <property name="visible">True</property>
