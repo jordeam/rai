@@ -14,6 +14,7 @@
 
 #include "sttmach.h"
 #include "circbuf.h"
+#include "oper_parameters.h"
 #include "plant_parameters.h"
 #include "encoder.h"
 
@@ -156,7 +157,10 @@ void state_equations(void * ignore) {
     clock_gettime(CLOCK_REALTIME, &ta);
     t = ta.tv_sec - t_0.tv_sec + (ta.tv_nsec - t_0.tv_nsec) * 1e-9;
     dt = t - t_old;
-    if (t > 15) exit(0);
+    if (end_time > 0 && t > end_time) {
+      printf("INFO: finishing by end_time\n");
+      exit(0);
+    }
     /* End of piston 100 N at -2mm */
     F_a = (F_a_MAX / xneg) * x_e;
     F_a = saturate(F_a, F_a_MAX, 0);

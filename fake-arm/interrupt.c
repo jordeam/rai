@@ -7,6 +7,8 @@
 #include <math.h>
 #include <pthread.h>
 
+#include "mymath.h"
+#include "awu_controller.h"
 #include "sttmach.h"
 #include "oper_parameters.h"
 #include "state_equations.h"
@@ -47,11 +49,15 @@ float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0.150e-3, t_EXPF = 0
 /* variables */
 float x_T, x_O2, q_INS, q_EXPF;
 
+
 /*
  * Control parameters and variables
  */
-float k_p = 0.2;
 #define TelMAX 1.0
+#define k_p 0.1
+#define k_i (0.10f * INTERVAL * 1e-6f)
+/* Speed controller */
+awu_controller_t omega_cont = { 0, 0, k_p, k_i, TelMAX, -TelMAX};
 float omega_ref = 0, omega_max = 0, x_ref = 0;
 /* speed measured by encoder */
 float omega_e = 0;
@@ -377,7 +383,7 @@ void control_fcn(float x, float omega) {
   case control_position:
   case control_speed:
     /* angular speed control loop */
-    Tel = k_p * (omega_ref - omega);
+    Tel = awu_controller_eval(&omega_cont, omega_ref, omega);
   case control_torque:
     Tel = saturate(Tel, TelMAX, -TelMAX);
     Tel_set(Tel);

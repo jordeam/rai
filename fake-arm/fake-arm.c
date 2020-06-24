@@ -36,8 +36,26 @@ int main(int argc, char *argv[]) {
     
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (argc == 2)
+  switch (argc) {
+  case 1:
+    break;
+  case 2:
     port = atoi(argv[1]);
+    break;
+  case 3:
+    if (strcmp(argv[1], "-t") == 0) {
+      end_time = atof(argv[2]);
+      printf("Setting ending time to %fs\n", end_time);
+    }
+    else {
+      fprintf(stderr, "ERROR: parameter not reckonized\n");
+      exit(1);
+    }
+    break;
+  default:
+    fprintf(stderr, "ERROR: parameter not reckonized\n");
+    exit(1);
+  }
 
   printf("Listening port %d\n", port);
   

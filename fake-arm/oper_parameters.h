@@ -37,6 +37,8 @@ extern global_parameters_t global_params;
 extern ventilator_parameters_t vent_params;
 extern infusionpump_parameters_t infpump_params[4];
 
+extern double end_time;
+
 extern const void * baseaddr_params[];
 
 void oper_parameters_init(void);
