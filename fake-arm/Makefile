@@ -21,7 +21,7 @@ UNCOMP	= gzip -df
 STRIP	= strip
 
 CFLAGS  = $(OBJOPT) $(IPATH) -D_GNU_SOURCE -g $(GLIB_CFLAGS)
-LDFLAGS = $(EXEOPT) $(LPATH) $(GLIB_LDFLAGS) -pthread
+LDFLAGS = $(EXEOPT) $(LPATH) $(GLIB_LDFLAGS) -pthread -lm
 
 ALL = $(EXECS)
 
@@ -36,7 +36,7 @@ distclean: clean
 .c.o:
 	$(CC) $(CFLAGS) -c $< 
 
-fake-arm: interpreter.o parameters.o commands.o interrupt.o state_phase.o
+fake-arm: interpreter.o oper_parameters.o commands.o interrupt.o sttmach.o state_equations.o circbuf.o encoder.o awu_controller.o
 
 curves: main
 	./main

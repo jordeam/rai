@@ -14,15 +14,13 @@
 #include <pthread.h>
 
 #include "interpreter.h"
-#include "parameters.h"
+#include "oper_parameters.h"
 #include "commands.h"
 #include "interrupt.h"
 
 #ifndef BUFSIZ
 #define BUFSIZ 1024
 #endif
-
-#define MAX_COUNTER 1000
 
 /* Buffers are declared static */
 char sendBuff[BUFSIZ];
@@ -33,18 +31,31 @@ int main(int argc, char *argv[]) {
   struct sockaddr_in serv_addr; 
   int port = 5000;
   
-  init_parameters();
-  init_interrupt();
-  
-  pthread_t trd;
-  int inter_data = MAX_COUNTER;
-  pthread_create(&trd, NULL, (void*) interval_code, &inter_data);
-
+  oper_parameters_init();
+  interrupt_init();
     
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
 
-  if (argc == 2)
+  switch (argc) {
+  case 1:
+    break;
+  case 2:
     port = atoi(argv[1]);
+    break;
+  case 3:
+    if (strcmp(argv[1], "-t") == 0) {
+      end_time = atof(argv[2]);
+      printf("Setting ending time to %fs\n", end_time);
+    }
+    else {
+      fprintf(stderr, "ERROR: parameter not reckonized\n");
+      exit(1);
+    }
+    break;
+  default:
+    fprintf(stderr, "ERROR: parameter not reckonized\n");
+    exit(1);
+  }
 
   printf("Listening port %d\n", port);
   
@@ -77,8 +88,6 @@ int main(int argc, char *argv[]) {
 
   close(connfd);
   free(sendBuff);
-
-  pthread_join(trd, NULL);
 
   return 0;
 }

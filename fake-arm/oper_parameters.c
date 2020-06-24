@@ -1,14 +1,16 @@
 #include <stdlib.h>
 
-#include "parameters.h"
+#include "oper_parameters.h"
 
 global_parameters_t global_params;
 ventilator_parameters_t vent_params;
 infusionpump_parameters_t infpump_params[4];
 
+double end_time = -1;
+
 const void * baseaddr_params[] = { &global_params, &vent_params, &infpump_params, NULL, NULL };
 
-void init_parameters(void) {
+void oper_parameters_init(void) {
   int i;
   global_params.firmware = FIRMWARE_VERSION;
   
