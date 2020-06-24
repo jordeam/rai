@@ -20,3 +20,13 @@ entry:focus{
 entrar{
 	color: green;
 }
+
+textview:focus{
+    font-family: monospace;
+    background-color: #DDDD88;
+    padding: 0.25em 1em;
+    border-radius: 3px;
+}
+
+
+
