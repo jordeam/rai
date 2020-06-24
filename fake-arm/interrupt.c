@@ -342,7 +342,7 @@ void state_equations(void) {
     data_log[lpos].v6 = V6;
     data_log[lpos].x_e = x_e;
     data_log[lpos].omega_m = omega_m;
-    data_log[lops].Tel = Tel;
+    data_log[lpos].Tel = Tel;
     lpos++;
     if (lpos >= NUMLOGS) 
       lpos = 0;
