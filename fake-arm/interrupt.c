@@ -81,6 +81,7 @@ void phase_forced_expiration(sttmach_t *self);
 /* vars to be evaluated ony once per control cycle */
 float x_enc = 0, x_con = 0;
 static int32_t encoder;
+float rho_e;
 
 /*
  * Phase Calib
@@ -174,17 +175,21 @@ void phase_reset(sttmach_t *self) {
 
 void subphase_O2_expand(sttmach_t *self) {
   if (self->i == 0) {
+    self->id = 1;
     x_ref = x_O2;
     control_mode = control_position;
     omega_max = OMEGA_MAX;
   }
-  else if (x_con >= x_ref)
+  else if (x_con >= x_ref) {
+    self->delay = 20;
     /* next state */
     self->state = phase_air;
+  }
 }
 
 void subphase_O2(sttmach_t *self) {
   if (x_con >= x_ref) {
+    self->id = 7;
     /* Close Valves */
     V2 = 0;
     self->delay = VALVE_OFF_INT;
@@ -196,10 +201,9 @@ void subphase_O2(sttmach_t *self) {
 void subphase_O2_measure_pressure(sttmach_t *self) {
   control_mode = control_position;
   omega_max = OMEGA_MAX;
-  x_ref = 1e-3;
-  if (x_con >= x_ref && self->i > 50 /* ms */) {
-    /* read pressure */
-    float rho_e = get_rho_e();
+  x_ref = 3e-3;
+  self->id = 6;
+  if (x_con >= x_ref && self->i > 10 /* ms */) {
     /* eval new position */
     x_T = VolINS/A_e;
     x_O2 = (FIO2 - 0.2) / 0.8 * x_T;
@@ -219,6 +223,7 @@ void subphase_O2_open_valves(sttmach_t *self) {
 }
 
 void phase_O2(sttmach_t *self) {
+  x_ref = 0;
   self->id = 1;
   subphase_O2_open_valves(self);
 }
@@ -360,11 +365,13 @@ void phase_forced_expiration(sttmach_t *self) {
  * Controller
  */
 void control_fcn(float x, float omega) {
+  float diff;
   /* position control loop */
   switch (control_mode) {
   case control_position:
     /* position control loop */
-    omega_ref = sign(x_ref - x) * sqrt(2 * TelMAX * (r_2 / (r_3 * r_1 * J_eq)) * fabsf(x_ref - x));
+    diff = 2 * (TelMAX - rho_e * (A_e * r_3 * r_1 / r_2)) * (r_2 / (r_3 * r_1 * J_eq)) * (x_ref - x);
+    omega_ref = sign(diff) * sqrt(fabs(diff));
     if (omega_max > 0)
       omega_ref = saturate(omega_ref, omega_max, -OMEGA_MAX);
     else if (omega_max < 0)
@@ -394,6 +401,8 @@ static void interrupt_1ms(int delta_t) {
   /* ARM code executed each 1ms goes here*/
   /* encoder access */
   encoder = encoder_get();
+  /* read pressure */
+  rho_e = get_rho_e();
   omega_e = k_es * encoder_speed(encoder);
   x_enc = (2 * M_PI * r_3 * kPOL / ENCODER_PULSES) * encoder;
   /* choose between real position get_x_e() and position givem by encoder x_enc */
