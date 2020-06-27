@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <pthread.h>
+#include <getopt.h>
 
 #include "interpreter.h"
 #include "oper_parameters.h"
@@ -26,37 +27,81 @@
 char sendBuff[BUFSIZ];
 char recvBuff[BUFSIZ];
 
+static int port = 5000;
+
+void parse_opts(int argc, char **argv) {
+  int c;
+
+  while (1)
+    {
+      static struct option long_options[] =
+        {
+          {"port",  required_argument, 0, 'p'},
+          {"end-time",  required_argument, 0, 't'},
+          {0, 0, 0, 0}
+        };
+      /* getopt_long stores the option index here. */
+      int option_index = 0;
+
+      c = getopt_long (argc, argv, "t:p:",
+                       long_options, &option_index);
+
+      /* Detect the end of the options. */
+      if (c == -1)
+        break;
+
+      switch (c)
+        {
+        case 0:
+          /* If this option set a flag, do nothing else now. */
+          if (long_options[option_index].flag != 0)
+            break;
+          printf ("option %s", long_options[option_index].name);
+          if (optarg)
+            printf (" with arg %s", optarg);
+          printf ("\n");
+          break;
+
+        case 't':
+          printf ("Setting end time `%s'\n", optarg);
+          end_time = atof(optarg);
+          break;
+
+        case 'p':
+          printf ("Using TCP Port `%s'\n", optarg);
+          port = atoi(optarg);
+          break;
+
+        case '?':
+          /* getopt_long already printed an error message. */
+          break;
+
+        default:
+          abort ();
+        }
+    }
+
+  /* Print any remaining command line arguments (not options). */
+  if (optind < argc)
+    {
+      printf ("non-option ARGV-elements: ");
+      while (optind < argc)
+        printf ("%s ", argv[optind++]);
+      putchar ('\n');
+    }
+}
+
 int main(int argc, char *argv[]) {
   int listenfd = 0, connfd = 0;
   struct sockaddr_in serv_addr; 
-  int port = 5000;
+
+  parse_opts(argc, argv);
   
   oper_parameters_init();
   interrupt_init();
     
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
-
-  switch (argc) {
-  case 1:
-    break;
-  case 2:
-    port = atoi(argv[1]);
-    break;
-  case 3:
-    if (strcmp(argv[1], "-t") == 0) {
-      end_time = atof(argv[2]);
-      printf("Setting ending time to %fs\n", end_time);
-    }
-    else {
-      fprintf(stderr, "ERROR: parameter not reckonized\n");
-      exit(1);
-    }
-    break;
-  default:
-    fprintf(stderr, "ERROR: parameter not reckonized\n");
-    exit(1);
-  }
-
+  
   printf("Listening port %d\n", port);
   
   memset(&serv_addr, '0', sizeof(serv_addr));
