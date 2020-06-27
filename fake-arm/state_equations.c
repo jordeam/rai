@@ -170,6 +170,11 @@ void state_equations(void * ignore) {
   
     /* state equations */
     d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_1 * r_3) / (J_eq * r_2)) * F_a + ((r_1 * r_3 * A_e) / (J_eq * r_2)) * rho_e;
+    /* fim de curso */
+    if (x_e < 0) {
+      if (d_omega_m < 0) d_omega_m = 0;
+      if (omega_m < 0) omega_m *= 0.1;
+    }
     d_theta_m = omega_m;
     if (V2)
       d_rho_e = (-rho_e + rho_O2) / tau_rho_O2;
