@@ -370,7 +370,7 @@ void control_fcn(float x, float omega) {
   switch (control_mode) {
   case control_position:
     /* position control loop */
-    diff = 2 * (TelMAX - rho_e * (A_e * r_ci * (r_ei * r_pm) /(r_ce * r_ee))) * (r_ci * (r_ei * r_pm) /(r_ce * r_ee * J_eq)) * (x_ref - x);
+    diff = 2 * (TelMAX - rho_e * (A_e * r_ci * (r_ei * r_pm) / (r_ce * r_ee))) * (r_ci * (r_ei * r_pm) /(r_ce * r_ee * J_eq)) * (x_ref - x);
     omega_ref = sign(diff) * sqrt(fabs(diff));
     if (omega_max > 0)
       omega_ref = saturate(omega_ref, omega_max, -OMEGA_MAX);
