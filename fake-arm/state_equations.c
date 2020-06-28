@@ -56,7 +56,7 @@ static double omega_m = 0;
 /* motor angular position */
 static double theta_m = INIT_ANG;
 /* piston position */
-static double x_e = r_3 * (r_1 / r_2) * INIT_ANG;
+static double x_e = ((r_ci * r_ei * r_pm) / (r_ce * r_ee) * INIT_ANG);
 /* relative pressure inside cylinder in Pa */
 static double rho_e = 0;
 
@@ -169,7 +169,7 @@ void state_equations(void * ignore) {
     P_m = (1 - k) * P_m + k * omega_m * Tel;
   
     /* state equations */
-    d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_1 * r_3) / (J_eq * r_2)) * F_a + ((r_1 * r_3 * A_e) / (J_eq * r_2)) * rho_e;
+    d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_ci * r_ei * r_pm) / (r_ce * r_ee * J_eq)) * F_a + ((A_e * r_ci * r_ei * r_pm) / (r_ce * r_ee * J_eq)) * rho_e;
     /* fim de curso */
     if (x_e < 0) {
       if (d_omega_m < 0) d_omega_m = 0;
@@ -181,7 +181,7 @@ void state_equations(void * ignore) {
     else if (V1 || V3 || V5 || V4)
       d_rho_e = -rho_e / tau_rho_O2;
     else {
-      float d_x_e = d_theta_m * r_3 * kPOL;
+      float d_x_e = d_theta_m * ((r_ci * r_ei * r_pm) / (r_ce * r_ee));
       float d_vol_e = d_x_e * A_e;
       float vol_e = x_e * A_e;
       if (fabs(vol_e) < 1e-6)
@@ -193,8 +193,8 @@ void state_equations(void * ignore) {
     omega_m += d_omega_m * dt;
     theta_m += d_theta_m * dt;
     rho_e += d_rho_e * dt;
-    x_e = theta_m * r_3 * kPOL;
-    encoder_eval(theta_m);
+    x_e = theta_m * ((r_ci * r_ei * r_pm) / (r_ce * r_ee));
+    encoder_eval(theta_m * (r_pm / r_ee));
     /* Logger */
     /* log data each 5 ms */
   

@@ -289,7 +289,7 @@ void phase_air(sttmach_t *self) {
 void subphase_inspiration(sttmach_t *self) {
   if (self->i == 0) {
     q_INS = VolINS / t_INS;
-    omega_max = -q_INS / (A_e * r_3 * kPOL);
+    omega_max = -q_INS / (A_e * r_ci * r_ei / r_ce);
     control_mode = control_position;
     x_ref = 0;
   }
@@ -333,7 +333,7 @@ void subphase_forced_expiration(sttmach_t *self) {
     /* must synchronize the reading of VolEXP and t_EXPF with other thread */
     x_ref = VolEXPF / A_e;
     q_EXPF = VolEXPF / t_EXPF;
-    omega_max = q_EXPF / (A_e * r_3 * kPOL);
+    omega_max = q_EXPF / (A_e * r_ci * r_ei / r_ce);
     control_mode = control_position;
   }
   else if (x_con >= x_ref - 1e-3) {
@@ -370,7 +370,7 @@ void control_fcn(float x, float omega) {
   switch (control_mode) {
   case control_position:
     /* position control loop */
-    diff = 2 * (TelMAX - rho_e * (A_e * r_3 * r_1 / r_2)) * (r_2 / (r_3 * r_1 * J_eq)) * (x_ref - x);
+    diff = 2 * (TelMAX - rho_e * (A_e * r_ci * (r_ei * r_pm) /(r_ce * r_ee))) * (r_ci * (r_ei * r_pm) /(r_ce * r_ee * J_eq)) * (x_ref - x);
     omega_ref = sign(diff) * sqrt(fabs(diff));
     if (omega_max > 0)
       omega_ref = saturate(omega_ref, omega_max, -OMEGA_MAX);
@@ -404,7 +404,7 @@ static void interrupt_1ms(int delta_t) {
   /* read pressure */
   rho_e = get_rho_e();
   omega_e = k_es * encoder_speed(encoder);
-  x_enc = (2 * M_PI * r_3 * kPOL / ENCODER_PULSES) * encoder;
+  x_enc = (2 * M_PI * r_ci * r_ei / (r_ce * ENCODER_PULSES)) * encoder;
   /* choose between real position get_x_e() and position givem by encoder x_enc */
   /* x_con = get_x_e(); */
   x_con = x_enc;
