@@ -27,7 +27,7 @@
 char sendBuff[BUFSIZ];
 char recvBuff[BUFSIZ];
 
-static int port = 5000;
+static int port = 5005;
 
 void parse_opts(int argc, char **argv) {
   int c;
@@ -112,27 +112,27 @@ int main(int argc, char *argv[]) {
   bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
 
   listen(listenfd, 10); 
-    
   connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
   for(;;) {
-
     int n;
     n = read(connfd, recvBuff, BUFSIZ - 1);
-    /* TODO n can be equal to BUFSIZ - 1*/
-    recvBuff[n] = '\0';
-    strtrim2(recvBuff);
-    /* printf("recv: [%s]\n", recvBuff); */
-
-    /* clear sebdBuff */
-    *sendBuff = '\0';
-    interpreter(recvBuff, sendBuff, BUFSIZ, baseaddr_params, cmdtab);
-    
-    write(connfd, sendBuff, strlen(sendBuff)); 
-
+    if (n == 0) {
+      printf("INFO: got an empty command, maybe the socket is closed\n");
+      printf("INFO: close socket connfd\n");
+      close(connfd);
+      printf("INFO: accept\n");
+      connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
+    }
+    else {
+      /* TODO n can be equal to BUFSIZ - 1*/
+      recvBuff[n] = '\0';
+      strtrim2(recvBuff);
+      /* printf("recv: [%s]\n", recvBuff); */
+      /* clear sebdBuff */
+      *sendBuff = '\0';
+      interpreter(recvBuff, sendBuff, BUFSIZ, baseaddr_params, cmdtab);
+      write(connfd, sendBuff, strlen(sendBuff)); 
+    }
   }
-
-  close(connfd);
-  free(sendBuff);
-
   return 0;
 }
