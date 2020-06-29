@@ -1,13 +1,16 @@
 #ifndef _interrupt_h
 #define interrup_h
 
-void * phase_reset(int phase_i);
-void * phase_O2(int phase_i);
-void * phase_air(int phase_i);
-void * phase_inspiration(int phase_i);
-void * phase_forced_expiration(int phase_i);
+#include "sttmach.h"
+
+enum control_mode {control_speed, control_position, control_torque};
+
+void phase_reset(sttmach_t *self);
+void phase_O2(sttmach_t *self);
+void phase_air(sttmach_t *self);
+void phase_inspiration(sttmach_t *self);
+void phase_forced_expiration(sttmach_t *self);
 
 void interrupt_init(void);
-void * interval_code(int *max_counter);
 
 #endif

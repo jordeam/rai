@@ -7,15 +7,17 @@
 
 /* Mechanic transmission parameters */
 /* Motor pulley radius m */
-#define r_pm 10e-3 
+#define r_pm 7e-3
+
 /* encoder pulley largest (external) radius */
-#define r_ee 40e-3
+#define r_ee 35e-3
+
 /* encoder pulley smallest (internal) radius */
-#define r_ei 10e-3
+#define r_ei 8e-3
 /* rack pulley largest (external) radius */
-#define r_ce 50e-3
+#define r_ce 40e-3
 /* rack pulley smallest (internal) radius, in contact with rack */
-#define r_ci 15e-3
+#define r_ci 10e-3
 
 /* material poliacetilene density kg/m3 */
 #define d_PA 1410
@@ -95,11 +97,11 @@
 /* inertia momentum of rack pulley */
 #define J_pc (d_PA * M_PI * (e_ce * sqr4(r_ce)/2 + e_ci * sqr4(r_ci) - N_cf * (e_ce * sqr4(r_cf) + sqr(r_cf) * e_ce * sqr(r_cp))))
 
-/* equivalent angular friction */
-#define B_eq (B_m + B_pm + (B_e + B_pe) * sqr(r_pm / r_ee) + B_pc * sqr((r_ei * r_pm) / (r_ce * r_ee)) + b_e * r_ci * sqr((r_ei * r_pm) / (r_ce * r_ee)))
+/* equivalent angular friction at motor axis reference */
+#define B_eq_motor (B_m + B_pm + (B_e + B_pe) * sqr(r_pm / r_ee) + B_pc * sqr((r_ei * r_pm) / (r_ce * r_ee)) + b_e * r_ci * sqr((r_ei * r_pm) / (r_ce * r_ee)))
 
-/* equivalent inercia momentum */
-#define J_eq (J_m + J_pm + (J_e + J_pe) * sqr(r_pm / r_ee) + J_pc * sqr((r_ei * r_pm) / (r_ce * r_ee)) + m_e * r_ci * sqr((r_ei * r_pm) / (r_ce * r_ee)))
+/* equivalent inercia momentum at motor axis reference */
+#define J_eq_motor (J_m + J_pm + (J_e + J_pe) * sqr(r_pm / r_ee) + J_pc * sqr((r_ei * r_pm) / (r_ce * r_ee)) + m_e * r_ci * sqr((r_ei * r_pm) / (r_ce * r_ee)))
 
 /* piston internal diameter */
 #define Demb 69e-3
@@ -112,5 +114,11 @@
 
 /* air pressure in Pa */
 #define rho_air 101000
+
+/* motor maximum speed */
+#define OMEGA_M_MAX (12777 / 60 * 2 * M_PI)
+
+/* encoder maximun speed rad/s */
+#define OMEGA_E_MAX (OMEGA_M_MAX * r_pm / r_ee)
 
 #endif
