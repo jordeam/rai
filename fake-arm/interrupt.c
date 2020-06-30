@@ -35,6 +35,9 @@
 /* counts each interruption */
 uint32_t timer_i = 0;
 
+/* counts each phase air executions after a power up */
+int phase_air_count = 0;
+
 /* natural expiration counter */
 int expn_i = 0;
 
@@ -42,8 +45,8 @@ int expn_i = 0;
 int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* operational parameters */
-int ventilator_run = 1;
-float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0.150e-3, t_EXPF = 0.4, t_EXPN = 0.8;
+int ventilator_run = 0;
+float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0, t_EXPF = 0, t_EXPN = 0.8;
 
 /* variables */
 float x_T, x_O2, q_INS, q_EXPF;
@@ -223,18 +226,17 @@ void phase_O2(sttmach_t *self) {
  * Air
  */
 void subphase_air(sttmach_t *self) {
-  static int count = 0;
   if (self->i == 0) {
     control_mode = control_position;
     x_ref = x_T = VolINS/A_e;
-    count++;
+    phase_air_count++;
     omega_max = OMEGA_E_MAX;
   }
   else {
     if (x_con >= x_T) {
       /* Close air valve */
       V1 = 0;
-      if (count == 1) {
+      if (phase_air_count == 1) {
         /* go to next phase if it is the first time of this phase */
         control_mode = control_speed;
         omega_ref = 0;
@@ -247,7 +249,7 @@ void subphase_air(sttmach_t *self) {
     }
     /* Natural expiration time, begins with phase 1 */
     /* must synchronize the reading of t_EXPN with other thread */
-    if (count != 1 && expn_i * INTERVAL * 1e-6 > t_EXPN) {
+    if (phase_air_count != 1 && expn_i * INTERVAL * 1e-6 > t_EXPN) {
       control_mode = control_speed;
       omega_ref = 0;
       /* close valves */
@@ -284,7 +286,7 @@ void subphase_inspiration(sttmach_t *self) {
     control_mode = control_position;
     x_ref = 0;
   }
-  else if (x_con <= 0 || (omega_e > 0 && self->i > t_INS * (1.0 / (2 * INTERVAL *1e-6)))) {
+  else if (x_con <= 0 || self->i > (t_INS + 0.1) * (1.0 / (INTERVAL * 1e-6))) {
     control_mode = control_speed;
     omega_ref = 0;
     /* close valves */

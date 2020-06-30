@@ -13,6 +13,7 @@
 #include <stddef.h>
 #include <pthread.h>
 #include <getopt.h>
+#include <sys/ioctl.h>
 
 #include "interpreter.h"
 #include "oper_parameters.h"
@@ -23,11 +24,29 @@
 #define BUFSIZ 1024
 #endif
 
+extern int ventilator_run;
+
 /* Buffers are declared static */
 char sendBuff[BUFSIZ];
 char recvBuff[BUFSIZ];
 
 static int port = 5005;
+
+int isClosed(int sock) {
+  int retval = 0;
+  int bytestoread=0;
+  fd_set myfd;
+  struct timeval timeout = {0, 10000000};
+ 
+  FD_ZERO(&myfd);
+  FD_SET(sock,&myfd);
+  int sio=select(FD_SETSIZE,&myfd, (fd_set *) 0,(fd_set *) 0, &timeout);
+  //have to do select first for some reason
+  /* int dio= */ioctl(sock, FIONREAD, &bytestoread);//should do error checking on return value of this
+  retval=((bytestoread==0)&&(sio==1));
+ 
+  return retval;
+}
 
 void parse_opts(int argc, char **argv) {
   int c;
@@ -36,9 +55,10 @@ void parse_opts(int argc, char **argv) {
     {
       static struct option long_options[] =
         {
-          {"port",  required_argument, 0, 'p'},
-          {"end-time",  required_argument, 0, 't'},
-          {0, 0, 0, 0}
+         {"run", no_argument, &ventilator_run, 1},
+         {"port",  required_argument, 0, 'p'},
+         {"end-time",  required_argument, 0, 't'},
+         {0, 0, 0, 0}
         };
       /* getopt_long stores the option index here. */
       int option_index = 0;
@@ -111,19 +131,12 @@ int main(int argc, char *argv[]) {
 
   bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)); 
 
-  listen(listenfd, 10); 
-  connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
+  listen(listenfd, 10);
   for(;;) {
-    int n;
-    n = read(connfd, recvBuff, BUFSIZ - 1);
-    if (n == 0) {
-      printf("INFO: got an empty command, maybe the socket is closed\n");
-      printf("INFO: close socket connfd\n");
-      close(connfd);
-      printf("INFO: accept\n");
-      connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
-    }
-    else {
+    connfd = accept(listenfd, (struct sockaddr*)NULL, NULL); 
+    for(; !isClosed(connfd);) {
+      int n;
+      n = read(connfd, recvBuff, BUFSIZ - 1);
       /* TODO n can be equal to BUFSIZ - 1*/
       recvBuff[n] = '\0';
       strtrim2(recvBuff);
@@ -131,8 +144,9 @@ int main(int argc, char *argv[]) {
       /* clear sebdBuff */
       *sendBuff = '\0';
       interpreter(recvBuff, sendBuff, BUFSIZ, baseaddr_params, cmdtab);
-      write(connfd, sendBuff, strlen(sendBuff)); 
+      write(connfd, sendBuff, strlen(sendBuff));
     }
+    close(connfd);
   }
   return 0;
 }
