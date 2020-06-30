@@ -19,7 +19,7 @@ print (sys.stderr, 'Conectando com %s porta %s' % server_address)
 try:
         sock.connect(server_address)
 except socket.error:
-        print("Process fake-arm must be running")
+        print("Process `fake-arm' must be running")
         exit(1)
 
 builder = Gtk.Builder()
