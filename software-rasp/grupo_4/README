@@ -1,0 +1,12 @@
+ How to run:
+
+You must run fake-arm first, with no arguments:
+
+$ cd ../../fake-arm
+$ ./fake-arm
+
+Then you can run main.py:
+
+$ cd ../software-rasp/grupo_4
+$ python main.py
+
