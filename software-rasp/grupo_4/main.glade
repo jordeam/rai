@@ -22,6 +22,7 @@
     <property name="value">35</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
+    <signal name="value-changed" handler="on_adj_freq_value_changed" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adj_height">
     <property name="lower">0.20000000000000001</property>
@@ -36,6 +37,7 @@
     <property name="value">0.40000000000000002</property>
     <property name="step_increment">0.050000000000000003</property>
     <property name="page_increment">0.10000000000000001</property>
+    <signal name="value-changed" handler="on_adj_time_insp_value_changed" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adj_time_rise">
     <property name="lower">0.050000000000000003</property>
@@ -50,6 +52,7 @@
     <property name="value">400</property>
     <property name="step_increment">10</property>
     <property name="page_increment">100</property>
+    <signal name="value-changed" handler="on_adj_vol_value_changed" swapped="no"/>
   </object>
   <object class="GtkAdjustment" id="adj_weight">
     <property name="lower">2</property>
@@ -499,7 +502,7 @@ Inspirado</property>
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkSpinButton" id="vol_insp">
+                                  <object class="GtkSpinButton" id="insp_vol">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="max_length">4</property>
@@ -1057,7 +1060,7 @@ Subida</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <signal name="clicked" handler="onEvalDataClicked" swapped="no"/>
+                            <signal name="clicked" handler="on_eval_data_clicked" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -1151,7 +1154,7 @@ Subida</property>
                               <object class="GtkLabel" id="resp_on_label">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Ativo</property>
+                                <property name="label" translatable="yes">Processo pausado</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>
@@ -1163,7 +1166,7 @@ Subida</property>
                               <object class="GtkSwitch" id="resp_on">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <signal name="state-set" handler="onRespActivate" swapped="no"/>
+                                <signal name="state-set" handler="on_resp_on_state_set" swapped="no"/>
                               </object>
                               <packing>
                                 <property name="expand">False</property>

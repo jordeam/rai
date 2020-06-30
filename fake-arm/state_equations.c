@@ -17,6 +17,7 @@
 #include "oper_parameters.h"
 #include "plant_parameters.h"
 #include "encoder.h"
+#include "interrupt.h"
 
 #define INIT_ANG 40
 
@@ -33,6 +34,7 @@ struct log_block {
   uint8_t phase, v1, v2, v3, v4, v5, v6;
   float x_ref, x_e, x_enc;
   float omega_m, omega_ref, omega_e, Tel, rho_e, P_m;
+  int control_mode;
 };
 
 typedef struct log_block log_block_t;
@@ -56,7 +58,7 @@ static double omega_m = 0;
 /* motor angular position */
 static double theta_m = INIT_ANG;
 /* piston position */
-static double x_e = r_3 * (r_1 / r_2) * INIT_ANG;
+static double x_e = ((r_ci * r_ei * r_pm) / (r_ce * r_ee) * INIT_ANG);
 /* relative pressure inside cylinder in Pa */
 static double rho_e = 0;
 
@@ -92,6 +94,7 @@ extern float x_ref, x_enc;
 extern float omega_ref;
 extern float omega_e;
 extern sttmach_t phases;
+extern enum control_mode control_mode;
 
 /*
  * Variables
@@ -129,11 +132,11 @@ void write_data(void * data) {
   int i = datalog.ri, count;
   /* printf("Writing data t = %f lpos=%d blpos=%d numlogs=%d\n", t, lpos, i, numlogs); */
   for (count = 0; i != lpos; count++)  {
-    fprintf (f, "%f %d %d %d %d %d %d %d %f %f %f %f %f %f %f %f %f\n",
+    fprintf (f, "%f %d %d %d %d %d %d %d %f %f %f %f %f %f %f %f %f %d\n",
              (float) data_log[i].t, data_log[i].phase, data_log[i].v1, data_log[i].v2, data_log[i].v3, data_log[i].v4, data_log[i].v5, data_log[i].v6,
              data_log[i].x_ref, data_log[i].x_e, data_log[i].x_enc,
              data_log[i].omega_m, data_log[i].omega_ref, data_log[i].omega_e,
-             data_log[i].Tel, data_log[i].rho_e, data_log[i].P_m);
+             data_log[i].Tel, data_log[i].rho_e, data_log[i].P_m, data_log[i].control_mode);
     i++;
     if (i >= NUMLOGS)
       i = 0;
@@ -169,7 +172,7 @@ void state_equations(void * ignore) {
     P_m = (1 - k) * P_m + k * omega_m * Tel;
   
     /* state equations */
-    d_omega_m = -(B_eq / J_eq) * omega_m + (1 / J_eq) * Tel + ((r_1 * r_3) / (J_eq * r_2)) * F_a + ((r_1 * r_3 * A_e) / (J_eq * r_2)) * rho_e;
+    d_omega_m = (1 / J_eq_motor) * (-B_eq_motor * omega_m +  Tel + F_a * ((r_ci * r_ei * r_pm) / (r_ce * r_ee)) + rho_e * ((A_e * r_ci * r_ei * r_pm) / (r_ce * r_ee)));
     /* fim de curso */
     if (x_e < 0) {
       if (d_omega_m < 0) d_omega_m = 0;
@@ -181,7 +184,7 @@ void state_equations(void * ignore) {
     else if (V1 || V3 || V5 || V4)
       d_rho_e = -rho_e / tau_rho_O2;
     else {
-      float d_x_e = d_theta_m * r_3 * kPOL;
+      float d_x_e = d_theta_m * ((r_ci * r_ei * r_pm) / (r_ce * r_ee));
       float d_vol_e = d_x_e * A_e;
       float vol_e = x_e * A_e;
       if (fabs(vol_e) < 1e-6)
@@ -193,8 +196,8 @@ void state_equations(void * ignore) {
     omega_m += d_omega_m * dt;
     theta_m += d_theta_m * dt;
     rho_e += d_rho_e * dt;
-    x_e = theta_m * r_3 * kPOL;
-    encoder_eval(theta_m);
+    x_e = theta_m * ((r_ci * r_ei * r_pm) / (r_ce * r_ee));
+    encoder_eval(theta_m * (r_pm / r_ee));
     /* Logger */
     /* log data each 5 ms */
   
@@ -218,6 +221,7 @@ void state_equations(void * ignore) {
       data_log[lpos].Tel = Tel;
       data_log[lpos].rho_e = rho_e;
       data_log[lpos].P_m = P_m;
+      data_log[lpos].control_mode = control_mode;
       circbufrw_inc_wi(&datalog);
       if (t - t_write >= WRITE_DATA_INTERVAL) {
         /* time to write data to file */
@@ -296,7 +300,7 @@ void state_equations_init(void) {
   /* data logger buffer */
   circbufrw_init(&datalog, NUMLOGS);
   /* encoder emulation */
-  encoder_init(theta_m);
+  encoder_init((r_pm / r_ee) * theta_m);
   /* a new thread to control gnuplot */
   pthread_t trd;
   pthread_create(&trd, NULL, (void*) gnuplot_init, NULL);

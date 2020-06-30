@@ -6,6 +6,8 @@
 #include "oper_parameters.h"
 #include "commands.h"
 
+extern int phase_air_count;
+
 extern float VolINS;
 int air_post(char *cmd, char *data) {
   VolINS = vent_params.air * 1e-6;
@@ -74,6 +76,7 @@ extern int ventilator_run;
 int ventilator_stop(char *cmd) {
   printf("Stoping venilator proccess, puts cylinder in its origin.\n");
   ventilator_run = 0;
+  phase_air_count = 0;
   return 0;
 }
 

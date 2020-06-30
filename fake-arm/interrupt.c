@@ -14,16 +14,15 @@
 #include "state_equations.h"
 #include "plant_parameters.h"
 #include "encoder.h"
+#include "interrupt.h"
 
 /* interval between interruptions in us */
 #define INTERVAL 1000
-#define NUM_PHASES 5
 
+/* delay for valves operation in ms */
 #define VALVE_OFF_INT 10
 #define VALVE_ON_INT 10
 
-/* motor maximun speed rad/s */
-#define OMEGA_MAX 314
 /* minimum speed to be considered stopped */
 #define OMEGA_E_MIN 3
 
@@ -36,6 +35,9 @@
 /* counts each interruption */
 uint32_t timer_i = 0;
 
+/* counts each phase air executions after a power up */
+int phase_air_count = 0;
+
 /* natural expiration counter */
 int expn_i = 0;
 
@@ -43,8 +45,8 @@ int expn_i = 0;
 int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* operational parameters */
-int ventilator_run = 1;
-float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0.150e-3, t_EXPF = 0.4, t_EXPN = 0.8;
+int ventilator_run = 0;
+float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0, t_EXPF = 0, t_EXPN = 0.8;
 
 /* variables */
 float x_T, x_O2, q_INS, q_EXPF;
@@ -53,7 +55,7 @@ float x_T, x_O2, q_INS, q_EXPF;
 /*
  * Control parameters and variables
  */
-#define TelMAX 1.0
+#define TelMAX 0.1
 #define k_p 0.1
 #define k_i (0.10f * INTERVAL * 1e-6f)
 /* Speed controller */
@@ -66,17 +68,9 @@ float Tel = 0;
 /* Encoder speed constant */
 #define k_es ((2 * M_PI) / (INTERVAL * 1e-6 * ENCODER_PULSES))
 
-enum control_mode {control_speed, control_position, control_torque};
-
 enum control_mode control_mode = control_speed;
 
 sttmach_t phases;
-
-void phase_reset(sttmach_t *self);
-void phase_O2(sttmach_t *self);
-void phase_air(sttmach_t *self);
-void phase_inspiration(sttmach_t *self);
-void phase_forced_expiration(sttmach_t *self);
 
 /* vars to be evaluated ony once per control cycle */
 float x_enc = 0, x_con = 0;
@@ -90,11 +84,11 @@ float rho_e;
 void subphase_calib_resets_encoder(sttmach_t *self) {
   if (self->i == 0) {
     control_mode = control_speed;
-    omega_ref = -0.2 * OMEGA_MAX;
+    omega_ref = -0.2 * OMEGA_E_MAX;
   }
   else if ((fabsf(omega_e) < OMEGA_E_MIN || omega_e > 0) && self->i > 50) {
     /* reset encoder */
-    encoder_set(0);
+    encoder_reset();
     omega_ref = 0;
     if (ventilator_run) {
       control_mode = control_speed;
@@ -128,7 +122,7 @@ void subphase_reset_go_0(sttmach_t *self) {
   static int timer_x0;
   if (self->i == 0) {
     control_mode = control_position;
-    omega_max = -OMEGA_MAX;
+    omega_max = -OMEGA_E_MAX;
     x_ref = -2e-3;
     timer_x0 = 0;
   }
@@ -140,7 +134,7 @@ void subphase_reset_go_0(sttmach_t *self) {
       omega_ref = 0;
       self->delay = VALVE_OFF_INT;
       /* resets encoder */
-      encoder_set(0);
+      encoder_reset();
       if (ventilator_run) {
         if (FIO2 <= 0.22)
           self->state = phase_air;
@@ -178,7 +172,7 @@ void subphase_O2_expand(sttmach_t *self) {
     self->id = 1;
     x_ref = x_O2;
     control_mode = control_position;
-    omega_max = OMEGA_MAX;
+    omega_max = OMEGA_E_MAX;
   }
   else if (x_con >= x_ref) {
     self->delay = 20;
@@ -200,7 +194,7 @@ void subphase_O2(sttmach_t *self) {
 
 void subphase_O2_measure_pressure(sttmach_t *self) {
   control_mode = control_position;
-  omega_max = OMEGA_MAX;
+  omega_max = OMEGA_E_MAX;
   x_ref = 3e-3;
   self->id = 6;
   if (x_con >= x_ref && self->i > 10 /* ms */) {
@@ -232,18 +226,17 @@ void phase_O2(sttmach_t *self) {
  * Air
  */
 void subphase_air(sttmach_t *self) {
-  static int count = 0;
   if (self->i == 0) {
     control_mode = control_position;
     x_ref = x_T = VolINS/A_e;
-    count++;
-    omega_max = OMEGA_MAX;
+    phase_air_count++;
+    omega_max = OMEGA_E_MAX;
   }
   else {
     if (x_con >= x_T) {
       /* Close air valve */
       V1 = 0;
-      if (count == 1) {
+      if (phase_air_count == 1) {
         /* go to next phase if it is the first time of this phase */
         control_mode = control_speed;
         omega_ref = 0;
@@ -256,7 +249,7 @@ void subphase_air(sttmach_t *self) {
     }
     /* Natural expiration time, begins with phase 1 */
     /* must synchronize the reading of t_EXPN with other thread */
-    if (count != 1 && expn_i * INTERVAL * 1e-6 > t_EXPN) {
+    if (phase_air_count != 1 && expn_i * INTERVAL * 1e-6 > t_EXPN) {
       control_mode = control_speed;
       omega_ref = 0;
       /* close valves */
@@ -289,11 +282,11 @@ void phase_air(sttmach_t *self) {
 void subphase_inspiration(sttmach_t *self) {
   if (self->i == 0) {
     q_INS = VolINS / t_INS;
-    omega_max = -q_INS / (A_e * r_3 * kPOL);
+    omega_max = -q_INS / (A_e * r_ci * r_ei / r_ce);
     control_mode = control_position;
     x_ref = 0;
   }
-  else if (x_con <= 0 || (omega_e > 0 && self->i > t_INS * (1.0 / (2 * INTERVAL *1e-6)))) {
+  else if (x_con <= 0 || self->i > (t_INS + 0.1) * (1.0 / (INTERVAL * 1e-6))) {
     control_mode = control_speed;
     omega_ref = 0;
     /* close valves */
@@ -333,7 +326,7 @@ void subphase_forced_expiration(sttmach_t *self) {
     /* must synchronize the reading of VolEXP and t_EXPF with other thread */
     x_ref = VolEXPF / A_e;
     q_EXPF = VolEXPF / t_EXPF;
-    omega_max = q_EXPF / (A_e * r_3 * kPOL);
+    omega_max = q_EXPF / (A_e * r_ci * r_ei / r_ce);
     control_mode = control_position;
   }
   else if (x_con >= x_ref - 1e-3) {
@@ -369,18 +362,16 @@ void control_fcn(float x, float omega) {
   /* position control loop */
   switch (control_mode) {
   case control_position:
-    /* position control loop */
-    diff = 2 * (TelMAX - rho_e * (A_e * r_3 * r_1 / r_2)) * (r_2 / (r_3 * r_1 * J_eq)) * (x_ref - x);
+    /* position control loop (reference: encoder axis) */
+    diff = 2 * (TelMAX * (r_ee / r_pm) - rho_e * (A_e * r_ci * (r_ei / r_ce))) * ((sqr(r_pm / r_ee) / J_eq_motor) * (r_ce / (r_ci * r_ei))) * (x_ref - x);
     omega_ref = sign(diff) * sqrt(fabs(diff));
     if (omega_max > 0)
-      omega_ref = saturate(omega_ref, omega_max, -OMEGA_MAX);
+      omega_ref = saturate(omega_ref, omega_max, -OMEGA_E_MAX);
     else if (omega_max < 0)
-      omega_ref = saturate(omega_ref, OMEGA_MAX, omega_max);
-    else
-      omega_ref = 0;
+      omega_ref = saturate(omega_ref, OMEGA_E_MAX, omega_max);
     break;
   case control_speed:
-    omega_ref = saturate(omega_ref, OMEGA_MAX, -OMEGA_MAX);    
+    omega_ref = saturate(omega_ref, OMEGA_E_MAX, -OMEGA_E_MAX);    
     break;
   case control_torque:
     break;
@@ -403,8 +394,8 @@ static void interrupt_1ms(int delta_t) {
   encoder = encoder_get();
   /* read pressure */
   rho_e = get_rho_e();
-  omega_e = k_es * encoder_speed(encoder);
-  x_enc = (2 * M_PI * r_3 * kPOL / ENCODER_PULSES) * encoder;
+  omega_e = k_es * encoder_speed();
+  x_enc = (2 * M_PI * r_ci * r_ei / (r_ce * ENCODER_PULSES)) * encoder;
   /* choose between real position get_x_e() and position givem by encoder x_enc */
   /* x_con = get_x_e(); */
   x_con = x_enc;

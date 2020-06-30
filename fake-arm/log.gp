@@ -1,22 +1,23 @@
 fn = 'log.dat'
 
-phase0 = 6
+xe0 = 0
+phase0 = xe0 + 6
+cm0 = phase0 + 2
 V10 = 5.5
 V20 = 5
 V30 = 4.5
 V40 = 4
 V50 = 3.5
 V60 = 3
-xe0 = 0
 omega0 = xe0 - 4
 Tel0 = omega0 - 2
 rho0 = Tel0 - 3
 P0 = rho0 - 2
 
-set yrange [P0-1.5:phase0 + 2]
+set yrange [P0-1.5:cm0 + 1]
 set autoscale x
 
-set ytics('0' phase0, '1' phase0 + 0.25, '2' phase0 + 0.5, '3' phase0 + 0.75, '4' phase0 + 1, '5' phase0+1.25, '6' phase0+1.5, '7' phase0+1.75, 'V1' V10, 'V2' V20, 'V3' V30, 'V4' V40, 'V5' V50, 'V6' V60, '10 cm' xe0+2, '5 cm' xe0+1, 'x 0' xe0, '300 rd/s' omega0+3, '200 rd/s' omega0+2, '100 rd/s' omega0+1, 'omega_m 0' omega0, '1 N.m' Tel0+1, 'T_{el} 0' Tel0, '-1 N.m' Tel0-1, '100kPa' rho0+1, 'rho_e 0' rho0, '100 W' P0+1, 'P_m 0' P0, '-100 W' P0-1)
+set ytics('0' phase0, '1' phase0 + 0.25, '2' phase0 + 0.5, '3' phase0 + 0.75, '4' phase0 + 1, '5' phase0+1.25, '6' phase0+1.5, '7' phase0+1.75, 's' cm0, 'p' cm0 + 0.333, 'T' cm0 + 0.667, 'V1' V10, 'V2' V20, 'V3' V30, 'V4' V40, 'V5' V50, 'V6' V60, '10 cm' xe0+2, '5 cm' xe0+1, 'x 0' xe0, '300 rd/s' omega0+3, '200 rd/s' omega0+2, '100 rd/s' omega0+1, 'omega_m 0' omega0, '0.1 N.m' Tel0+1, 'T_{el} 0' Tel0, '-0.1 N.m' Tel0-1, '100kPa' rho0+1, 'rho_e 0' rho0, '100 W' P0+1, 'P_m 0' P0, '-100 W' P0-1)
 set pointsize 1
 
 plot fn u 1:($2/4 + phase0) with points title 'phase', \
@@ -32,6 +33,7 @@ plot fn u 1:($2/4 + phase0) with points title 'phase', \
      fn u 1:($12*0.01 + omega0) w lines title 'omega_m', \
      fn u 1:($13*0.01 + omega0) w lines title 'omega_{ref}', \
      fn u 1:($14*0.01 + omega0) w lines title 'omega_e', \
-     fn u 1:($15 + Tel0) w lines notitle, \
+     fn u 1:($15*10 + Tel0) w lines notitle, \
      fn u 1:($16*1e-5 + rho0) w lines notitle, \
-     fn u 1:($17*1e-2 + P0) w lines notitle
+     fn u 1:($17*1e-2 + P0) w lines notitle, \
+     fn u 1:($18*.333 + cm0) w lines notitle
