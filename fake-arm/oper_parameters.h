@@ -16,8 +16,6 @@ struct ventilator_parameters {
   uint32_t air;
   uint32_t FIO2;
   uint32_t insp_time;
-  uint32_t vexp;
-  uint32_t texpf;
   uint32_t texpn;
   uint32_t ppress;
   uint32_t npress;
