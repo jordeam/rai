@@ -20,8 +20,6 @@ void oper_parameters_init(void) {
   vent_params.air = VolINS * 1e6;
   vent_params.FIO2 = FIO2 * 100;
   vent_params.insp_time = t_INS * 1e3;
-  vent_params.vexp = VolEXPF * 1e6;
-  vent_params.texpf = t_EXPF * 1e3;
   vent_params.texpn = t_EXPN * 1e3;
   vent_params.ppress = 80;
   vent_params.npress = 20;

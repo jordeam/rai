@@ -46,7 +46,7 @@ int V1 = 0, V2 = 0, V3 = 0, V4 = 0, V5 = 0, V6 = 0;
 
 /* operational parameters */
 int ventilator_run = 0;
-float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, VolEXPF = 0, t_EXPF = 0, t_EXPN = 0.8;
+float FIO2 = 0.3, VolINS = 0.4e-3, t_INS = 0.800, t_EXPN = 0.8;
 
 /* variables */
 float x_T, x_O2, q_INS, q_EXPF;
@@ -154,6 +154,7 @@ void subphase_reset_go_0(sttmach_t *self) {
 
 void subphase_reset_open_valves(sttmach_t *self) {
   V5 = V6 = 1;
+  expn_i = 0;
   control_mode = control_speed;
   omega_ref = 0;
   self->delay = VALVE_ON_INT;
@@ -228,6 +229,7 @@ void phase_O2(sttmach_t *self) {
 void subphase_air(sttmach_t *self) {
   if (self->i == 0) {
     control_mode = control_position;
+    /* TODO: check if it is considering FIO2 */
     x_ref = x_T = VolINS/A_e;
     phase_air_count++;
     omega_max = OMEGA_E_MAX;
@@ -253,7 +255,7 @@ void subphase_air(sttmach_t *self) {
       control_mode = control_speed;
       omega_ref = 0;
       /* close valves */
-      V6 = 0;
+      V1 = V6 = 0;
       self->delay = VALVE_OFF_INT;
       /* next state */
       self->state = phase_inspiration;
@@ -291,14 +293,10 @@ void subphase_inspiration(sttmach_t *self) {
     omega_ref = 0;
     /* close valves */
     V3 = 0;
+    /* wait the next phase */
     self->delay = VALVE_OFF_INT;
-    /* verify if a forced expiration is programed */
-    if (t_EXPF > 0 && VolEXPF > 0)
-      /* next state */
-      self->state = phase_forced_expiration;
-    else
-      /* next state */
-      self->state = phase_reset /* reset position */;
+    /* next state */
+    self->state = phase_reset /* reset position */;
   }
 }
 
@@ -316,42 +314,6 @@ void phase_inspiration(sttmach_t *self) {
   self->id = 3;
   /* next state */
   subphase_inspiration_valves(self);
-}
-
-/*
- * Forced Expiration
- */
-void subphase_forced_expiration(sttmach_t *self) {
-  if (self->i == 0) {
-    /* must synchronize the reading of VolEXP and t_EXPF with other thread */
-    x_ref = VolEXPF / A_e;
-    q_EXPF = VolEXPF / t_EXPF;
-    omega_max = q_EXPF / (A_e * r_ci * r_ei / r_ce);
-    control_mode = control_position;
-  }
-  else if (x_con >= x_ref - 1e-3) {
-    omega_ref = 0;
-    control_mode = control_speed;
-    /* close valves */
-    V4 = 0;
-    self->delay = VALVE_OFF_INT;
-    /* next state */
-    self->state = phase_reset;
-  }
-}
-
-void subphase_forced_expiration_valves(sttmach_t *self) {
-  V4 = 1;
-  control_mode = control_speed;
-  omega_ref = 0;
-  self->delay = VALVE_ON_INT;
-  /* next state */
-  self->state = subphase_forced_expiration; 
-}
-
-void phase_forced_expiration(sttmach_t *self) {
-  self->i = 4;
-  subphase_forced_expiration_valves(self);
 }
 
 /* 

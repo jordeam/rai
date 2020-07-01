@@ -28,18 +28,6 @@ int insp_time_post(char *cmd, char *data) {
   return 0;
 }
 
-extern float VolEXPF;
-int vexp_post(char *cmd, char *data) {
-  VolEXPF = vent_params.vexp * 1e-6;
-  return 0;
-}
-
-extern float t_EXPF;
-int texpf_post(char *cmd, char *data) {
-  t_EXPF = vent_params.texpf * 1e-3;
-  return 0;
-}
-
 extern float t_EXPN;
 int texpn_post(char *cmd, char *data) {
   t_EXPN = vent_params.texpn * 1e-3;
@@ -54,8 +42,6 @@ const command_table_t cmdtab[] = { {"firmware", RO, pstring, offsetof(global_par
                                    {"r:air", RW, uint32, offsetof(ventilator_parameters_t, air), NULL, air_post, "Inspired air volume"},
                                    {"r:FIO2", RW, uint32, offsetof(ventilator_parameters_t, FIO2), NULL, FIO2_post, "Inspired % O2 volume"},
                                    {"r:insp-time", RW, uint32, offsetof(ventilator_parameters_t, insp_time), NULL, insp_time_post, "Inspiration time"},
-                                   {"r:vexp", RW, uint32, offsetof(ventilator_parameters_t, vexp), NULL, vexp_post, "Forced exalating volume"},
-                                   {"r:texpf", RW, uint32, offsetof(ventilator_parameters_t, texpf), NULL, texpf_post, "Forced exalating time"},
                                    {"r:texpn", RW, uint32, offsetof(ventilator_parameters_t, texpn), NULL, texpn_post, "Natural exalating time"},
                                    {"r:ppress", RW, uint32, offsetof(ventilator_parameters_t, ppress), NULL, NULL, "Positive pressure"},
                                    {"r:npress", RW, uint32, offsetof(ventilator_parameters_t, npress), NULL, NULL, "Negative pressure"},
