@@ -27,6 +27,7 @@ builder.add_from_file("main.glade")
 
 # Ventilator Parameters
 # Inspiration Volume
+FIO2 = 20
 insp_vol = 400
 insp_time = 0.8
 resp_freq = 35
@@ -101,6 +102,10 @@ class Handler:
                 exp_time = (60 / resp_freq) - insp_time
                 print("exp_time = ", exp_time)
                 sock.sendall(b'r:texpn! ' + bytearray(str(round(exp_time * 1000)), 'utf-8'))
+
+        def on_adj_fio2_value_changed(self, wdg):
+                FIO2 =  wdg.get_value()
+                sock.sendall(b'r:FIO2! ' + bytearray(str(round(FIO2)), 'utf-8'))
                 
 builder.connect_signals(Handler())
 
