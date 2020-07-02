@@ -17,25 +17,25 @@
 /* rack pulley largest (external) radius */
 #define r_ce 40e-3
 /* rack pulley smallest (internal) radius, in contact with rack */
-#define r_ci 10e-3
+#define r_ci 7.5e-3
 
 /* material poliacetilene density kg/m3 */
 #define d_PA 1410
 
 /* motor pulley thickness */
-#define e_pm 5e-3
+#define e_pm 7e-3
 
 /* largest encoder pulley thickness */
-#define e_ee 5e-3
+#define e_ee 7e-3
 
 /* smallest encoder pulley thickness */
-#define e_ei 5e-3
+#define e_ei 7e-3
 
 /* largest rack pulley thickness */
-#define e_ce 5e-3
+#define e_ce 7e-3
 
 /* smallest rack pulley thickness */
-#define e_ci 5e-3
+#define e_ci 7e-3
 
 /* Number of hollow sections in encoder pulley */
 #define N_ef 4
