@@ -37,6 +37,21 @@
     <property name="step_increment">0.01</property>
     <property name="page_increment">0.10000000000000001</property>
   </object>
+  <object class="GtkAdjustment" id="adj_peep">
+    <property name="upper">50</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adj_press_cont">
+    <property name="upper">50</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
+  <object class="GtkAdjustment" id="adj_press_sup">
+    <property name="upper">50</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
+  </object>
   <object class="GtkAdjustment" id="adj_time_insp">
     <property name="lower">0.050000000000000003</property>
     <property name="upper">5</property>
@@ -211,7 +226,7 @@
                               <object class="GtkLabel" id="alt">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Altura </property>
+                                <property name="label" translatable="yes">Altura (m)</property>
                                 <property name="justify">center</property>
                                 <property name="ellipsize">middle</property>
                               </object>
@@ -224,7 +239,7 @@
                               <object class="GtkSpinButton" id="height">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="max_length">5</property>
+                                <property name="max_length">4</property>
                                 <property name="width_chars">4</property>
                                 <property name="adjustment">adj_height</property>
                                 <property name="climb_rate">0.01</property>
@@ -241,7 +256,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="max_length">5</property>
-                                <property name="width_chars">4</property>
+                                <property name="width_chars">5</property>
                                 <property name="adjustment">adj_weight</property>
                                 <property name="climb_rate">1</property>
                                 <property name="digits">1</property>
@@ -267,6 +282,8 @@
                               <object class="GtkSpinButton" id="age">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+                                <property name="max_length">3</property>
+                                <property name="width_chars">3</property>
                                 <property name="adjustment">adj_age</property>
                                 <property name="climb_rate">1</property>
                                 <property name="numeric">True</property>
@@ -281,7 +298,7 @@
                               <object class="GtkLabel" id="pes">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Peso</property>
+                                <property name="label" translatable="yes">Peso (kg)</property>
                                 <property name="justify">center</property>
                               </object>
                               <packing>
@@ -488,43 +505,14 @@
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Volume
-Inspirado</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="insp_vol">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="max_length">4</property>
-                                    <property name="width_chars">4</property>
-                                    <property name="truncate_multiline">True</property>
-                                    <property name="caps_lock_warning">False</property>
-                                    <property name="adjustment">adj_vol</property>
-                                    <property name="climb_rate">1</property>
-                                    <property name="value">200</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Volume
+Inspirado (mL)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -533,11 +521,18 @@ Inspirado</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="insp_vol">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Volume de mistura gasosa a ser injetado nos pulmões do paciente por ciclo.</property>
+                                <property name="max_length">4</property>
+                                <property name="width_chars">4</property>
+                                <property name="text" translatable="yes">200</property>
+                                <property name="truncate_multiline">True</property>
+                                <property name="caps_lock_warning">False</property>
+                                <property name="adjustment">adj_vol</property>
+                                <property name="climb_rate">1</property>
+                                <property name="value">200</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -555,40 +550,14 @@ Inspirado</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Tempo
-Inspiratório</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="time_insp">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="adjustment">adj_time_insp</property>
-                                    <property name="climb_rate">0.050000000000000003</property>
-                                    <property name="digits">2</property>
-                                    <property name="value">0.40000000000000002</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Tempo
+Inspiratório (s)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -597,11 +566,17 @@ Inspiratório</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="time_insp">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Tempo gasto na inspiração da mistura gasosa.</property>
+                                <property name="max_length">5</property>
+                                <property name="width_chars">5</property>
+                                <property name="text" translatable="yes">0.40</property>
+                                <property name="adjustment">adj_time_insp</property>
+                                <property name="climb_rate">0.050000000000000003</property>
+                                <property name="digits">2</property>
+                                <property name="value">0.40000000000000002</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -619,41 +594,14 @@ Inspiratório</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Frequência
-Respiratória</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="freq">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="max_length">3</property>
-                                    <property name="width_chars">3</property>
-                                    <property name="adjustment">adj_freq</property>
-                                    <property name="climb_rate">1</property>
-                                    <property name="update_policy">if-valid</property>
-                                    <property name="value">35</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Frequência
+Respiratória (cpm)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -662,11 +610,16 @@ Respiratória</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="freq">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="max_length">3</property>
+                                <property name="width_chars">3</property>
+                                <property name="text" translatable="yes">35</property>
+                                <property name="adjustment">adj_freq</property>
+                                <property name="climb_rate">1</property>
+                                <property name="update_policy">if-valid</property>
+                                <property name="value">35</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -684,36 +637,14 @@ Respiratória</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Pressão
-Controlada</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="press_cont">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Pressão de
+Suporte (cmH20)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -722,71 +653,15 @@ Controlada</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="press_sup">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkBox">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <child>
-                              <object class="GtkBox">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Pressão de
-Suporte</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="press_sup">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkProgressBar">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">No modo de controle espontâneo por pressão (PSV/CPAP), é a pressão
+que o ventilador mantém durante a inspiração após o disparo.</property>
+                                <property name="max_length">4</property>
+                                <property name="width_chars">4</property>
+                                <property name="adjustment">adj_press_sup</property>
+                                <property name="digits">1</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -804,36 +679,14 @@ Suporte</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel" id="peep">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">PEEP
-</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="press_max_insp4">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Pressão
+Controlada (cmH2O)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -842,11 +695,56 @@ Suporte</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="press_cont">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Similar à Pressão de Suporte, porém, atua no modo de controle por pressão (PCV) “respiração forçada”. Ela é a pressão que será mantida após o Tempo de Subida e durante o tempo inspiratório.</property>
+                                <property name="max_length">4</property>
+                                <property name="width_chars">4</property>
+                                <property name="adjustment">adj_press_cont</property>
+                                <property name="digits">1</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="top_attach">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
+                            <child>
+                              <object class="GtkLabel" id="peep">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="label" translatable="yes">PEEP
+(cmH2O)</property>
+                                <property name="justify">center</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkSpinButton" id="pee">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">PEEP (Positive End-Expiratory Pressure): É a pressão mínima que será mantida no pulmão ao final da expiração (entenda como um “offset” positivo na pressão do pulmão).
+“A PEEP (Pressão Expiratória Final Positiva) é uma ferramenta utilizada para se recrutar e manter os alvéolos abertos, além de otimizar as trocas gasosas e combater os shunts pulmonares.” (basicamente, deixa os alvéolos sempre um pouco mais abertos e re-infla alvéolos debilitados).</property>
+                                <property name="max_length">4</property>
+                                <property name="width_chars">4</property>
+                                <property name="adjustment">adj_peep</property>
+                                <property name="digits">1</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -864,53 +762,34 @@ Suporte</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel" id="frac_C1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel" id="frac_C1">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Fração de O2
+                                <property name="label" translatable="yes">Fração de O2
 FIO2 (%)</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="fio2">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="adjustment">adj_fio2</property>
-                                    <property name="climb_rate">1</property>
-                                    <property name="update_policy">if-valid</property>
-                                    <property name="value">20</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="fio2">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Ajuste da composição do O2 na mistura enviada aos pulmões (ajustando este parâmetro, tenta-se manter a Taxa de O2 no sangue próxima de 95%).
+Obs.: Em alguns casos, a dificuldade do sangue em absorver o O2 obriga o fornecimento de 100% de O2.</property>
+                                <property name="max_length">3</property>
+                                <property name="width_chars">3</property>
+                                <property name="text" translatable="yes">20</property>
+                                <property name="adjustment">adj_fio2</property>
+                                <property name="climb_rate">1</property>
+                                <property name="update_policy">if-valid</property>
+                                <property name="value">20</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -928,40 +807,14 @@ FIO2 (%)</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Tempo de
-Subida</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="time_rise">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="adjustment">adj_time_rise</property>
-                                    <property name="climb_rate">0.050000000000000003</property>
-                                    <property name="digits">2</property>
-                                    <property name="value">0.050000000000000003</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Tempo de
+Subida (s)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -970,11 +823,17 @@ Subida</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="time_rise">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Tempo de Subida: Nas modalidades PSV, PCV, e SIMV(VCV)+PSV, é o tempo necessário para atingir a pressão escolhida (Pressão de Suporte ou Pressão Controlada).</property>
+                                <property name="max_length">4</property>
+                                <property name="width_chars">4</property>
+                                <property name="text" translatable="yes">0.05</property>
+                                <property name="adjustment">adj_time_rise</property>
+                                <property name="climb_rate">0.050000000000000003</property>
+                                <property name="digits">2</property>
+                                <property name="value">0.050000000000000003</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -992,49 +851,29 @@ Subida</property>
                           <object class="GtkBox">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="orientation">vertical</property>
                             <child>
-                              <object class="GtkBox">
+                              <object class="GtkLabel">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <child>
-                                  <object class="GtkLabel">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Sensibilidade
-</property>
-                                    <property name="justify">center</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">0</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <object class="GtkSpinButton" id="sens">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                  </object>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="fill">True</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
+                                <property name="label" translatable="yes">Sensibilidade
+(cmH20)</property>
+                                <property name="justify">center</property>
                               </object>
                               <packing>
-                                <property name="expand">True</property>
+                                <property name="expand">False</property>
                                 <property name="fill">True</property>
                                 <property name="position">0</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkProgressBar">
+                              <object class="GtkSpinButton" id="sens">
                                 <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="orientation">vertical</property>
-                                <property name="inverted">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_text" translatable="yes">Nos modos assistidos, é a pressão negativa (feita pelo pulmão do paciente) necessária para ativar o ciclo respirador. </property>
+                                <property name="max_length">3</property>
+                                <property name="width_chars">3</property>
+                                <property name="digits">1</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1062,10 +901,12 @@ Subida</property>
                         <property name="orientation">vertical</property>
                         <child>
                           <object class="GtkButton" id="eval_data">
-                            <property name="label" translatable="yes">Preencher com dados do paciente</property>
+                            <property name="label" translatable="yes">Calcular com dados do paciente</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_text" translatable="yes">Calcula os parâmetros operacionais do respirador
+com base nos dados do paciente.</property>
                             <signal name="clicked" handler="on_eval_data_clicked" swapped="no"/>
                           </object>
                           <packing>
@@ -1131,12 +972,16 @@ Subida</property>
                               <object class="GtkComboBoxText" id="mode_oper">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="tooltip_text" translatable="yes">VCV - controle por volume
+PCV - controle por pressão
+PSV/CPAP - controle espontâneo por pressão
+SIMV(VCV) + PSV - ventilação mandatória intermitente sincronizada</property>
                                 <property name="active">0</property>
                                 <items>
                                   <item id="0" translatable="yes">VCV</item>
                                   <item id="1" translatable="yes">PCV</item>
                                   <item id="2" translatable="yes">PSV/CPAP</item>
-                                  <item id="3" translatable="yes">SIMV/PSV</item>
+                                  <item id="3" translatable="yes">SIMV(VCV) + PSV</item>
                                 </items>
                               </object>
                               <packing>

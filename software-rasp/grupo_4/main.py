@@ -20,7 +20,7 @@ try:
         sock.connect(server_address)
 except socket.error:
         print("Process `fake-arm' must be running")
-        exit(1)
+#        exit(1)
 
 builder = Gtk.Builder()
 builder.add_from_file("main.glade")
