@@ -36,7 +36,7 @@ distclean: clean
 .c.o:
 	$(CC) $(CFLAGS) -c $< 
 
-fake-arm: interpreter.o oper_parameters.o commands.o interrupt.o sttmach.o state_equations.o circbuf.o encoder.o awu_controller.o
+fake-arm: interpreter.o oper_parameters.o commands.o flux_control.o sttmach.o state_equations.o circbuf.o encoder.o awu_controller.o
 
 curves: main
 	./main

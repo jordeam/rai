@@ -17,7 +17,7 @@
 #include "oper_parameters.h"
 #include "plant_parameters.h"
 #include "encoder.h"
-#include "interrupt.h"
+#include "flux_control.h"
 
 #define INIT_ANG 40
 
