@@ -1,7 +1,6 @@
 #include <sys/stat.h>
 #include "stm32f4xx.h"
-#include "stm32f4xx_conf.h"
-#include "usbd_cdc_vcp.h"
+//#include "stm32f4xx_conf.h"
 
 int __errno;
 
@@ -30,7 +29,7 @@ int _read(int file, char *ptr, int len) {
   if (file == 0) {
     /* non-blocking read */
     /* Use USB CDC Port for stdin */
-    while(i < len && VCP_get_char((uint8_t*)ptr + i)) i++;
+    /* while(i < len && VCP_get_char((uint8_t*)ptr + i)) i++; */
     return i;
   }
   else
@@ -61,7 +60,7 @@ caddr_t _sbrk_r (struct _reent *r, int incr) {
 }
 
 int _write(int file, char *ptr, int len) {
-	VCP_send_buffer((uint8_t*)ptr, len);
+	/* VCP_send_buffer((uint8_t*)ptr, len); */
 	return len;
 }
 

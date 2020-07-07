@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "stm32f4xx_conf.h"
+//#include "stm32f4xx_conf.h"
 #include "stm32f4xx.h"
 /* #include "main.h" */
 
@@ -19,14 +19,8 @@
 #include "controller.h"
 #include "interpreter.h"
 
-#include "usbd_cdc_core.h"
-#include "usbd_usr.h"
-#include "usbd_desc.h"
-#include "usbd_cdc_vcp.h"
-
 // Private variables
 volatile uint32_t time_var1, time_var2;
-__ALIGN_BEGIN USB_OTG_CORE_HANDLE  USB_OTG_dev __ALIGN_END;
 
 // Private function prototypes
 void Delay(volatile uint32_t nCount);
@@ -94,17 +88,6 @@ void serial_ticks_task(void) {
   uart_puts(s);
 }
 
-void usb_task() {
-  static int iteration = 0, n;
-  char s[20];
-  time_var2 = 0;
-  n=read(0, &s, 19);
-  s[n]='\0';
-  printf("str=%s\nTime:      %lu ms\n\r", s, time_var2);
-  printf("Iteration: %i\n\r", iteration);
-  iteration++;
-}
-
 int main(void)
 {
   /* volatile int d; */
@@ -123,13 +106,6 @@ int main(void)
   SysTick_Config(SystemCoreClock / 1000);
 
   pins_init();
-
-  /* ------------- USB -------------- */
-  USBD_Init(&USB_OTG_dev,
-            USB_OTG_FS_CORE_ID,
-            &USR_desc,
-            &USBD_CDC_cb,
-            &USR_cb);
 
   spi_init(NULL);
   stasks_init();
@@ -160,8 +136,6 @@ int main(void)
   stasks_add(interpret_rx, READY, 0, 0);
   stasks_add(background_task, READY, 0, 0);
   stasks_add(serial_ticks_task, TIMING, 500, 500);
-
-  stasks_add(usb_task, TIMING, 1000, 1000);
 
   /* main loop */
   systick_cntr = 0;
