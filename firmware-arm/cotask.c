@@ -5,7 +5,7 @@
 #include "stm32f4xx.h"
 #include "pins.h"
 
-#include "stasks_mod.h"
+#include "cotask.h"
 
 /* the time counter in milli seconds */
 int time_ms;
@@ -19,19 +19,19 @@ static volatile uint32_t magic;
 
 volatile uint32_t systick_cntr = 0;
 
-/* stasks control blocks */
-stasks_cb_t stasks_cb[STASKSNUM];
+/* cotask control blocks */
+cotask_cb_t cotask_cb[COTASKNUM];
 
-/* stasks current control block index */
-static int stasks_i;
+/* cotask current control block index */
+static int cotask_i;
 
-/* stasks current control block pointer */
-static stasks_cb_t * stasks_ctcb;
+/* cotask current control block pointer */
+static cotask_cb_t * cotask_ctcb;
 
-static void stasks_process_timers(void) {
+static void cotask_process_timers(void) {
   int i;
-  stasks_cb_t * tcb = stasks_cb;
-  for (i = 0; i < STASKSNUM; i++, tcb++) {
+  cotask_cb_t * tcb = cotask_cb;
+  for (i = 0; i < COTASKNUM; i++, tcb++) {
     if (tcb->f == NULL)
       continue;
     switch (tcb->status) {
@@ -61,22 +61,22 @@ static void stasks_process_timers(void) {
 /*
   Kill current task by moving all TCBs from next to the current TCB position, one position up.
 */
-static void stasks_kill_current(void) {
-  stasks_cb_t * tcb = stasks_ctcb;
-  int i = stasks_i;
+static void cotask_kill_current(void) {
+  cotask_cb_t * tcb = cotask_ctcb;
+  int i = cotask_i;
   /* verify if it is not the last task */
-  if (stasks_i == STASKSNUM - 1) {
+  if (cotask_i == COTASKNUM - 1) {
     /* just clean this position and returns */
-    stasks_ctcb->f = NULL;
+    cotask_ctcb->f = NULL;
   }
   else {
     /* it is not the last position, we need to copy the blocks up */
-    while ((tcb+1)->f && i < STASKSNUM) {
+    while ((tcb+1)->f && i < COTASKNUM) {
       // char * temp_ptr = (char *)(tcb);
       //char * temp_ptr1 = (char *)(tcb+1);
-      memcpy(tcb, tcb+1, sizeof(stasks_cb_t));
-      // sizeof(stasks_cb_t);
-      // memcpy(temp_ptr, temp_ptr1, sizeof(stasks_cb_t));
+      memcpy(tcb, tcb+1, sizeof(cotask_cb_t));
+      // sizeof(cotask_cb_t);
+      // memcpy(temp_ptr, temp_ptr1, sizeof(cotask_cb_t));
       tcb++;
       i++;
     }
@@ -87,11 +87,11 @@ static void stasks_kill_current(void) {
 /*
   Process current task, returns 0 if ok, -1 if it were killed.
 */
-static int stasks_process_current(void) {
-  void (*f)(void) = stasks_ctcb->f;
+static int cotask_process_current(void) {
+  void (*f)(void) = cotask_ctcb->f;
   if (f == NULL)
     return 0;
-  switch (stasks_ctcb->status) {
+  switch (cotask_ctcb->status) {
   case READY:
   case RUN_ONCE:
   case TIMING_READY:
@@ -103,14 +103,14 @@ static int stasks_process_current(void) {
   case TIMING_ONCE:
     break;
   }
-  switch (stasks_ctcb->status) {
+  switch (cotask_ctcb->status) {
   case RUN_ONCE:
   case KILLED:
-    stasks_kill_current();
+    cotask_kill_current();
     return -1;
   case TIMING_READY:
-    stasks_ctcb->status = TIMING;
-    stasks_ctcb->count = stasks_ctcb->data;
+    cotask_ctcb->status = TIMING;
+    cotask_ctcb->count = cotask_ctcb->data;
     break;
   case READY:
   case BLOCKED:
@@ -121,13 +121,13 @@ static int stasks_process_current(void) {
   return 0;
 }
 
-void stasks_init(void) {
+void cotask_init(void) {
   int i;
-  for (i=0; i < STASKSNUM; i++) {
-    stasks_cb[i].f = NULL;
+  for (i=0; i < COTASKNUM; i++) {
+    cotask_cb[i].f = NULL;
   }
-  stasks_i = 0;
-  stasks_ctcb = stasks_cb;
+  cotask_i = 0;
+  cotask_ctcb = cotask_cb;
   if (magic != MAGIC) {
     /* MAYBE it is a power on reset */
     magic = MAGIC;
@@ -138,17 +138,17 @@ void stasks_init(void) {
 }
 
 /*
-  Include a new stask in the array of stasks. Return 0 if ok, 1 if stasks array is full.
+  Include a new stask in the array of cotask. Return 0 if ok, 1 if cotask array is full.
 */
-int stasks_add(stasks_fcn_t f, int status, int data, uint16_t count) {
+int cotask_add(cotask_fcn_t f, int status, int data, uint16_t count) {
   /* find an empty tcb */
   int i;
-  for (i=0; i < STASKSNUM; i++)
-    if (stasks_cb[i].f == NULL) {
-      stasks_cb[i].status = status;
-      stasks_cb[i].data = data;
-      stasks_cb[i].count = count;
-      stasks_cb[i].f = f;
+  for (i=0; i < COTASKNUM; i++)
+    if (cotask_cb[i].f == NULL) {
+      cotask_cb[i].status = status;
+      cotask_cb[i].data = data;
+      cotask_cb[i].count = count;
+      cotask_cb[i].f = f;
       return 0;
     }
   /* if code gets here, the array is full */
@@ -158,25 +158,25 @@ int stasks_add(stasks_fcn_t f, int status, int data, uint16_t count) {
 /*
   Gets the tcb of a task with the same address of function f, if it is there, returns null otherwise.
 */
-stasks_cb_t * stasks_find(stasks_fcn_t f) {
+cotask_cb_t * cotask_find(cotask_fcn_t f) {
   int i;
-  for (i=0; i < STASKSNUM; i++)
-    if (stasks_cb[i].f == f)
-      return &stasks_cb[i];
+  for (i=0; i < COTASKNUM; i++)
+    if (cotask_cb[i].f == f)
+      return &cotask_cb[i];
   return NULL;
 }
 
 /*
-  Include a new stask in the array of stasks only if it is not already there. Return 0 if ok, 1 if stasks array is full.
+  Include a new stask in the array of cotask only if it is not already there. Return 0 if ok, 1 if cotask array is full.
 */
-int stasks_add_once(stasks_fcn_t f, int status, int data, uint16_t count) {
+int cotask_add_once(cotask_fcn_t f, int status, int data, uint16_t count) {
   /* find an empty tcb */
   int i;
-  stasks_cb_t * tcb = stasks_find(f);
+  cotask_cb_t * tcb = cotask_find(f);
   if (tcb == NULL)
-    for (i=0; i < STASKSNUM; i++)
-      if (stasks_cb[i].f == NULL) {
-        tcb = &stasks_cb[i];
+    for (i=0; i < COTASKNUM; i++)
+      if (cotask_cb[i].f == NULL) {
+        tcb = &cotask_cb[i];
         break;
       }
   if (tcb == NULL)
@@ -192,11 +192,11 @@ int stasks_add_once(stasks_fcn_t f, int status, int data, uint16_t count) {
 /*
   Replaces the current task by this new one.
 */
-int stasks_replace_current(stasks_fcn_t f, int status, int data, uint16_t count) {
-  stasks_ctcb->f = f;
-  stasks_ctcb->status = status;
-  stasks_ctcb->data = data;
-  stasks_ctcb->count = count;
+int cotask_replace_current(cotask_fcn_t f, int status, int data, uint16_t count) {
+  cotask_ctcb->f = f;
+  cotask_ctcb->status = status;
+  cotask_ctcb->data = data;
+  cotask_ctcb->count = count;
   /* success */
   return 0;
 }
@@ -204,17 +204,17 @@ int stasks_replace_current(stasks_fcn_t f, int status, int data, uint16_t count)
 /*
   Kill the current task, visible from the user function.
 */
-void stasks_killme(void) {
-  stasks_ctcb->status = KILLED;
+void cotask_killme(void) {
+  cotask_ctcb->status = KILLED;
 }
 
 /*
   Kills a task by searching its function address.
   Returns 1 if success 0 otherwise.
 */
-int stasks_kill(stasks_fcn_t f) {
-  stasks_cb_t * tcb;
-  tcb = stasks_find(f);
+int cotask_kill(cotask_fcn_t f) {
+  cotask_cb_t * tcb;
+  tcb = cotask_find(f);
   if (tcb) {
     tcb->status = KILLED;
     return 1;
@@ -224,10 +224,10 @@ int stasks_kill(stasks_fcn_t f) {
 }
 
 
-void stasks_run(void) {
+void cotask_run(void) {
   if (systick_cntr > 0) {
     /* turn on SIGI pin if it is in the begining of process */
-    if (stasks_i == 0) {
+    if (cotask_i == 0) {
       /* increments global time counter */
       time_ms++;
       if (time_ms >= 1000) {
@@ -235,41 +235,41 @@ void stasks_run(void) {
         time_s++;
       }
       /* HIGH(SIGI); */
-      stasks_process_timers();
+      cotask_process_timers();
     }
     /* process all tasks control blocks */
     /* Process the next stask and returns */
 
     /* Verify if it is empty */
-    while (stasks_ctcb->f == NULL) {
-      stasks_i++;
-      stasks_ctcb++;
-      if (stasks_i >= STASKSNUM) {
+    while (cotask_ctcb->f == NULL) {
+      cotask_i++;
+      cotask_ctcb++;
+      if (cotask_i >= COTASKNUM) {
         /* resets index and tcb pointer */
-        stasks_i = 0;
-        stasks_ctcb = stasks_cb;
+        cotask_i = 0;
+        cotask_ctcb = cotask_cb;
         /* Decrement systick_cntr */
         __disable_irq();
         systick_cntr--;
         __enable_irq();
-        /* signals the end of stasks process */
+        /* signals the end of cotask process */
         /* LOW(SIGI); */
         return;
       }
     }
-    if (stasks_process_current() == 0) {
-      /* increment stasks_i only if last task were not killed */
-      /* point to next stasks_cb */
-      stasks_i++;
-      stasks_ctcb++;
-      if (stasks_i >= STASKSNUM) {
-        stasks_i = 0;
-        stasks_ctcb = stasks_cb;
+    if (cotask_process_current() == 0) {
+      /* increment cotask_i only if last task were not killed */
+      /* point to next cotask_cb */
+      cotask_i++;
+      cotask_ctcb++;
+      if (cotask_i >= COTASKNUM) {
+        cotask_i = 0;
+        cotask_ctcb = cotask_cb;
         /* Decrement systick_cntr */
         __disable_irq();
         systick_cntr--;
         __enable_irq();
-        /* signals the end of stasks process */
+        /* signals the end of cotask process */
         /* LOW(SIGI); */
       }
     }

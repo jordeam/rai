@@ -11,7 +11,7 @@
 #include "uart_mod.h"
 #include "pins.h"
 #include "spi_mod.h"
-#include "interpreter.h"
+#include "interpreter_stack.h"
 
 #define RXBUFSIZ 20
 
