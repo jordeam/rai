@@ -268,7 +268,7 @@ void interpreter(char * s, char * sendBuff, int sendBuff_size, const void * base
               snprintf(sendBuff, sendBuff_size, "%s %hhu\n", s, *(uint16_t *)(basepparam + cmdtab[i].offset));
             break;
             case uint32:
-              snprintf(sendBuff, sendBuff_size, "%s %u\n", s, *(uint32_t *)(basepparam + cmdtab[i].offset));
+              snprintf(sendBuff, sendBuff_size, "%s %lu\n", s, *(uint32_t *)(basepparam + cmdtab[i].offset));
               break;
             case int8:
               snprintf(sendBuff, sendBuff_size, "%s %hhd\n", s, *(int8_t *)(basepparam + cmdtab[i].offset));
@@ -277,7 +277,7 @@ void interpreter(char * s, char * sendBuff, int sendBuff_size, const void * base
               snprintf(sendBuff, sendBuff_size, "%s %hd\n", s, *(int16_t *)(basepparam + cmdtab[i].offset));
               break;
             case int32:
-              snprintf(sendBuff, sendBuff_size, "%s %d\n", s, *(int32_t *)(basepparam + cmdtab[i].offset));
+              snprintf(sendBuff, sendBuff_size, "%s %ld\n", s, *(int32_t *)(basepparam + cmdtab[i].offset));
               break;
             }
             printf("GET: cmd=%s, %s\n", s, cmdtab[i].info);

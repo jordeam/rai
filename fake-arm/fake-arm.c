@@ -18,7 +18,7 @@
 #include "interpreter.h"
 #include "oper_parameters.h"
 #include "commands.h"
-#include "interrupt.h"
+#include "flux_control.h"
 
 #ifndef BUFSIZ
 #define BUFSIZ 1024

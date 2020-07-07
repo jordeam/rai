@@ -7,8 +7,12 @@
 
 int32_t encoder_get(void);
 void encoder_reset(void);
-void encoder_eval(double theta);
+
+#ifndef ARM
+void encoder_eval(float theta);
+#endif
+
 float encoder_speed(void);
-void encoder_init(double Theta0);
+void encoder_init(float Theta0);
 
 #endif
