@@ -1,7 +1,8 @@
 # Sources
 
-CSRCS = main.c stm32f4xx_it.c system_stm32f4xx.c syscalls.c
-CSRCS += controller.c interpreter.c pins.c gpio_mod.c button.c circbuf1.c stasks_mod.c sys_init.c uart_mod.c spi_mod.c ad_mod.c timer_mod.c sin-cos.c
+CSRCS = main.c stm32f4xx_it.c system_stm32f4xx.c syscalls.c 
+CSRCS += awu_controller.c interpreter.c oper_parameters.c encoder.c flux_control.c commands.c sttmach.c
+CSRCS += interpreter_stack.c controller.c pins.c gpio_mod.c button.c circbuf1.c cotask.c sys_init.c uart_mod.c spi_mod.c ad_mod.c timer_mod.c sin-cos.c
 
 SRCS = $(patsubst %.c, %.o, $(CSRCS))
 
@@ -33,7 +34,7 @@ CC=$(BINPATH)/arm-none-eabi-gcc
 OBJCOPY=$(BINPATH)/arm-none-eabi-objcopy
 SIZE=$(BINPATH)/arm-none-eabi-size
 
-CFLAGS  = -std=gnu99 -g -Wall -Tstm32_flash.ld
+CFLAGS  = -std=gnu99 -g -Wall -Tstm32_flash.ld -DARM
 CFLAGS += -mlittle-endian -mthumb -mthumb-interwork -nostartfiles -mcpu=cortex-m4
 
 ifeq ($(FLOAT_TYPE), hard)
@@ -49,20 +50,22 @@ vpath %.c src
 vpath %.a lib
 
 ROOT=$(shell pwd)
+STLibrary = STM32F4_Library
 
 # Includes
-CFLAGS += -I../../STLibrary/Core/cmsis -I../../STLibrary/Core/stm32
-CFLAGS += -I../../STLibrary/Conf
+CFLAGS += -I../fake-arm
+CFLAGS += -I../../$(STLibrary)/Core/cmsis -I../../$(STLibrary)/Core/stm32
+CFLAGS += -I../../$(STLibrary)/Conf
 
 # Library paths
-LIBPATHS = -L../../STLibrary/StdPeriph -L../../STLibrary/USB_Device/Core
-LIBPATHS += -L../../STLibrary/USB_Device/Class/cdc -L../../STLibrary/USB_OTG
+LIBPATHS = -L../../$(STLibrary)/StdPeriph -L../../$(STLibrary)/USB_Device/Core
+LIBPATHS += -L../../$(STLibrary)/USB_Device/Class/cdc -L../../$(STLibrary)/USB_OTG
 
 # Libraries to link
 LIBS = -lm 
 
 # Extra includes
-CFLAGS += -I../../STLibrary/StdPeriph/inc
+CFLAGS += -I../../$(STLibrary)/StdPeriph/inc
 
 # add startup file to build
 SRCS += startup_stm32f4xx.S
@@ -93,8 +96,14 @@ distclean: clean
 	rm -f *.log *.lst *.map *.s
 
 
-system_stm32f4xx.o: ../../STLibrary/system_stm32f4xx.c
+# system_stm32f4xx.o: ../../$(STLibrary)/system_stm32f4xx.c
+# 	$(CC) $(CFLAGS) -c $< -o $@
+
+# stm32f4xx_it.o: ../../$(STLibrary)/stm32f4xx_it.c
+# 	$(CC) $(CFLAGS) -c $< -o $@
+
+%.o: ../../$(STLibrary)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-stm32f4xx_it.o: ../../STLibrary/stm32f4xx_it.c
+%.o: ../fake-arm/%.c
 	$(CC) $(CFLAGS) -c $< -o $@

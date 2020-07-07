@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "stasks_mod.h"
+#include "cotask.h"
 #include "button.h"
 
 static button_t * button_array;

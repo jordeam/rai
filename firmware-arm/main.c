@@ -3,21 +3,19 @@
 #include <stdio.h>
 #include <unistd.h>
 
-//#include "stm32f4xx_conf.h"
 #include "stm32f4xx.h"
-/* #include "main.h" */
 
 #include "gpio_mod.h"
 #include "sys_init.h"
 #include "ad_mod.h"
 #include "button.h"
 #include "pins.h"
-#include "stasks_mod.h"
+#include "cotask.h"
 #include "timer_mod.h"
 #include "spi_mod.h"
 #include "uart_mod.h"
 #include "controller.h"
-#include "interpreter.h"
+#include "interpreter_stack.h"
 
 // Private variables
 volatile uint32_t time_var1, time_var2;
@@ -48,12 +46,12 @@ void led6_off_task(void);
 
 void led6_on_task(void) {
   LED6_on;
-  stasks_replace_current(led6_off_task, TIMING_ONCE, 0, (opmode) ? 50 : 200);
+  cotask_replace_current(led6_off_task, TIMING_ONCE, 0, (opmode) ? 50 : 200);
 }
 
 void led6_off_task(void) {
   LED6_off;
-  stasks_replace_current(led6_on_task, TIMING_ONCE, 0, (opmode) ? 100 : 200);
+  cotask_replace_current(led6_on_task, TIMING_ONCE, 0, (opmode) ? 100 : 200);
 }
 
 /* blue button (user button) from board */
@@ -61,31 +59,30 @@ void user_button_fcn(void *data) {
   opmode = !opmode;
 }
 
-extern float Vbus;
-
-void background_task(void) {
-  /* Read sensor x (Sx) and put in LED(x+2) */
-  if (READBIT(S1)) LED3_on; else LED3_off;
-  /* if (READBIT(S2)) LED4_on; else LED4_off; */
-  /* LED5 will be used to indicate Vbus > 140V */
-  /* if (READBIT(S3)) LED5_on; else LED5_off; */
-  if (Vbus > 140) {
-    /* turn SCR on - inverse logic */
-    LOW(TX485);
-    LED5_on;
-  }
-  else {
-    LED5_off;
-    /* turn SCR off - inverse logic */
-    HIGH(TX485);
-  }
-}
-
 void serial_ticks_task(void) {
   static int i;
   char s[20];
   snprintf(s, 20, "# bobo %d\r\n", i++);
   uart_puts(s);
+}
+
+/*
+ * Called from systick handler
+ */
+void timing_handler() {
+  if (time_var1) {
+    time_var1--;
+  }
+
+  time_var2++;
+}
+
+/*
+ * Delay a number of systick cycles (1ms)
+ */
+void Delay(volatile uint32_t nCount) {
+  time_var1 = nCount;
+  while(time_var1){};
 }
 
 int main(void)
@@ -108,7 +105,7 @@ int main(void)
   pins_init();
 
   spi_init(NULL);
-  stasks_init();
+  cotask_init();
   LSE_init();
   DA_init();
   AD_init();
@@ -129,58 +126,19 @@ int main(void)
 
   button_array_init(buttons, NUMBUTTONS);
   button_add(1, PIN(USER_BUTTON), PORT(USER_BUTTON), user_button_fcn, (void*) 500);
-  stasks_add(buttons_task, READY, 0, 0);
+  cotask_add(buttons_task, READY, 0, 0);
 
-  stasks_add(led6_on_task, READY, 0, 0);
+  cotask_add(led6_on_task, READY, 0, 0);
   /* interpret UART commands */
-  stasks_add(interpret_rx, READY, 0, 0);
-  stasks_add(background_task, READY, 0, 0);
-  stasks_add(serial_ticks_task, TIMING, 500, 500);
+  cotask_add(interpret_rx, READY, 0, 0);
+  cotask_add(serial_ticks_task, TIMING, 500, 500);
 
   /* main loop */
   systick_cntr = 0;
   for(;;) {
     /* S. O. Functions */
-    stasks_run();
+    cotask_run();
     flag=TIM3->CNT;
   }
 }
 
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t* file, uint32_t line)
-{ 
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* Infinite loop */
-  while (1)
-  {
-  }
-}
-#endif
-
-
-/*
- * Called from systick handler
- */
-void timing_handler() {
-	if (time_var1) {
-		time_var1--;
-	}
-
-	time_var2++;
-}
-
-/*
- * Delay a number of systick cycles (1ms)
- */
-void Delay(volatile uint32_t nCount) {
-	time_var1 = nCount;
-	while(time_var1){};
-}

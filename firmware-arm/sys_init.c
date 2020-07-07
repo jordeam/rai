@@ -1,5 +1,5 @@
 #include "stm32f4xx.h"
-#include "stasks_mod.h"
+#include "cotask.h"
 #include "pins.h"
 
 #define  LSE_FAIL_FLAG  0x80
@@ -35,7 +35,7 @@ int LSE_init(void) {
   /* Set LSEON bit */
   *(__IO uint8_t *) (PERIPH_BASE + BDCR_OFFSET) = RCC_LSE_ON;
 
-  stasks_add(LSE_activate_task, TIMING, 500, 500);
+  cotask_add(LSE_activate_task, TIMING, 500, 500);
   return 1;
 }
 
@@ -53,7 +53,7 @@ void LSE_activate_task(void) {
       /* RCC_LSEConfig(RCC_LSE_OFF); */
       *(__IO uint8_t *) (PERIPH_BASE + BDCR_OFFSET) = RCC_LSE_OFF;
       LSE_init_failed = 0;
-      stasks_killme();
+      cotask_killme();
     }        
   }
   else if (LSE_Delay >= LSE_FAIL_FLAG) {          
@@ -66,6 +66,6 @@ void LSE_activate_task(void) {
     /* RCC_LSEConfig(RCC_LSE_OFF); */
     *(__IO uint8_t *) (PERIPH_BASE + BDCR_OFFSET) = RCC_LSE_OFF;
     LSE_init_failed = 1;
-    stasks_killme();
+    cotask_killme();
   }
 }

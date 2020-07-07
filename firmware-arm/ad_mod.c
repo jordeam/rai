@@ -5,7 +5,7 @@
 #include "pbit.h"
 #include "pins.h"
 #include "gpio_mod.h"
-#include "stasks_mod.h"
+#include "cotask.h"
 #include "spi_mod.h"
 
 #include "ad_mod.h"
