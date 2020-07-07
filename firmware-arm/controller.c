@@ -255,7 +255,8 @@ void controller_i_pi(void) {
     /* TODO: evaluate the modulus of generator voltage by va, vb and vc */
     abc_to_alphabeta(Vab, Vbc, Vca, &v_alpha, &v_beta, &v_0);
 
-    if (PLL(Vab, Vbc, Vca, &theta, &omega, &Vq));
+    PLL(Vab, Vbc, Vca, &theta, &omega, &Vq);
+    /* if (PLL(Vab, Vbc, Vca, &theta, &omega, &Vq)); */
     /*   HIGH(SIGCONTROL); */
     /* else */
     /*   LOW(SIGCONTROL); */

@@ -5,9 +5,6 @@ CSRCS += controller.c interpreter.c pins.c gpio_mod.c button.c circbuf1.c stasks
 
 SRCS = $(patsubst %.c, %.o, $(CSRCS))
 
-# USB
-SRCS += usbd_usr.c usbd_cdc_vcp.c usbd_desc.c usb_bsp.c
-
 # Project name
 
 #PROJ_NAME=stm32f4_usb_cdc
@@ -30,7 +27,8 @@ endif
 
 GCC_REL = 5_4-2016q2
 #BINPATH=~/gcc-arm-none-eabi-$(GCC_REL)/bin
-BINPATH=~/gcc-arm-eabi/bin
+#BINPATH=~/gcc-arm-eabi/bin
+BINPATH=/usr/bin
 CC=$(BINPATH)/arm-none-eabi-gcc
 OBJCOPY=$(BINPATH)/arm-none-eabi-objcopy
 SIZE=$(BINPATH)/arm-none-eabi-size
@@ -61,13 +59,10 @@ LIBPATHS = -L../../STLibrary/StdPeriph -L../../STLibrary/USB_Device/Core
 LIBPATHS += -L../../STLibrary/USB_Device/Class/cdc -L../../STLibrary/USB_OTG
 
 # Libraries to link
-LIBS = -lm -lstdperiph -lusbdevcore -lusbdevcdc -lusbcore
+LIBS = -lm 
 
 # Extra includes
 CFLAGS += -I../../STLibrary/StdPeriph/inc
-CFLAGS += -I../../STLibrary/USB_OTG/inc
-CFLAGS += -I../../STLibrary/USB_Device/Core/inc
-CFLAGS += -I../../STLibrary/USB_Device/Class/cdc/inc
 
 # add startup file to build
 SRCS += startup_stm32f4xx.S
@@ -76,13 +71,12 @@ OBJS = $(SRCS:.c=.o)
 
 ###################################################
 
-.PHONY: lib
+# .PHONY: lib
 
-all: lib main.elf
+ALL = main.elf
+
+all: $(ALL)
 	$(SIZE) main.elf
-
-lib:
-	$(MAKE) -C lib FLOAT_TYPE=$(FLOAT_TYPE) BINPATH=$(BINPATH)
 
 main.elf: $(SRCS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LIBPATHS) $(LIBS)
@@ -96,5 +90,11 @@ clean:
 	rm -f main.bin
 
 distclean: clean
-	$(MAKE) clean -C lib
 	rm -f *.log *.lst *.map *.s
+
+
+system_stm32f4xx.o: ../../STLibrary/system_stm32f4xx.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+stm32f4xx_it.o: ../../STLibrary/stm32f4xx_it.c
+	$(CC) $(CFLAGS) -c $< -o $@
